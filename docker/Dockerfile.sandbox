@@ -8,18 +8,19 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     curl \
     wget \
-    git \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Installation de Node.js 20.x
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
 
 # Installation de Python 3.11
 RUN apt-get update && apt-get install -y \
     python3.11 \
     python3-pip \
+    && ln -s /usr/bin/python3.11 /usr/bin/python \
     && rm -rf /var/lib/apt/lists/*
 
 # Installation de Java (OpenJDK)
@@ -27,7 +28,7 @@ RUN apt-get update && apt-get install -y \
     openjdk-17-jdk \
     && rm -rf /var/lib/apt/lists/*
 
-# Installation de C++ compiler
+# Installation de C/C++ compiler
 RUN apt-get update && apt-get install -y \
     g++ \
     gcc \
@@ -37,10 +38,10 @@ RUN apt-get update && apt-get install -y \
 RUN useradd -m -s /bin/bash coderunner
 
 # Répertoire de travail
-WORKDIR /app
+WORKDIR /code
 
 # Changer les permissions
-RUN chown -R coderunner:coderunner /app
+RUN chown -R coderunner:coderunner /code
 
 # Basculer vers l'utilisateur non-root
 USER coderunner
