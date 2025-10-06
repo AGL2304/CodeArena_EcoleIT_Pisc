@@ -4,12 +4,15 @@ const challengeSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
   difficulty: { type: String, enum: ['Easy','Medium','Hard'], default: 'Easy' },
+  
+  // 🔹 testCases avec types flexibles
   testCases: [
     {
-      input: String,
-      expectedOutput: String
+      input: { type: mongoose.Schema.Types.Mixed }, // Accepte tout type
+      expectedOutput: { type: mongoose.Schema.Types.Mixed } // Accepte tout type
     }
   ],
+  
   createdAt: { type: Date, default: Date.now }
 });
 
