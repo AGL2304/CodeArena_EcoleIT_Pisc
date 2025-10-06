@@ -1,0 +1,21 @@
+FROM node:20-alpine AS build
+WORKDIR /app
+
+# Copier package.json et package-lock.json pour installer les dépendances
+COPY ./frontend/package*.json ./
+
+# Installer toutes les dépendances (incluant devDependencies)
+RUN npm install --include=dev
+
+# Copier le reste du frontend
+COPY ./frontend ./
+
+# Build pour production
+RUN npm run build
+
+# Étape Nginx
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+
+EXPOSE 8080
+CMD ["nginx", "-g", "daemon off;"]

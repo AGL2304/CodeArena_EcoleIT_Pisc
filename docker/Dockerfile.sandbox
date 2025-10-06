@@ -1,0 +1,49 @@
+# Image de base pour l'exécution de code sandbox
+FROM ubuntu:22.04
+
+# Éviter les prompts interactifs
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Mise à jour et installation des outils de base
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Installation de Node.js 20.x
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
+
+# Installation de Python 3.11
+RUN apt-get update && apt-get install -y \
+    python3.11 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Installation de Java (OpenJDK)
+RUN apt-get update && apt-get install -y \
+    openjdk-17-jdk \
+    && rm -rf /var/lib/apt/lists/*
+
+# Installation de C++ compiler
+RUN apt-get update && apt-get install -y \
+    g++ \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Créer un utilisateur non-root pour l'exécution du code
+RUN useradd -m -s /bin/bash coderunner
+
+# Répertoire de travail
+WORKDIR /app
+
+# Changer les permissions
+RUN chown -R coderunner:coderunner /app
+
+# Basculer vers l'utilisateur non-root
+USER coderunner
+
+# Commande par défaut
+CMD ["/bin/bash"]

@@ -1,6 +1,5 @@
-version: "3.9"
-
 services:
+  # Backend Node.js
   backend:
     build:
       context: .
@@ -9,6 +8,9 @@ services:
     ports:
       - "5000:5000"
     env_file: .env
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://mongodb:27017/codearena
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -16,27 +18,68 @@ services:
       - mongodb
     networks:
       - codearena_net
+    restart: unless-stopped
 
+  # Frontend Vue.js
+  frontend:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.frontend
+    container_name: codearena_frontend
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:5000
+      - VITE_SOCKET_URL=http://localhost:4000
+      - HOST=0.0.0.0
+    depends_on:
+      - backend
+    networks:
+      - codearena_net
+    restart: unless-stopped
+
+
+
+  # MongoDB
   mongodb:
     image: mongo:7
     container_name: codearena_db
     restart: always
     ports:
       - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=codearena
     volumes:
       - mongo_data:/data/db
+      - mongo_config:/data/configdb
     networks:
       - codearena_net
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # Socket.io Server
   socket:
     build:
       context: .
-      dockerfile: ./docker/Dockerfile.backend # si c’est le même serveur Node qui gère socket.io
+      dockerfile: ./docker/Dockerfile.socket
     container_name: codearena_socket
     ports:
       - "4000:4000"
+    environment:
+      - NODE_ENV=development
+      - CORS_ORIGIN=http://localhost:8080
+    volumes:
+      - ./socket:/app
+      - /app/node_modules
+    depends_on:
+      - mongodb
     networks:
       - codearena_net
+    restart: unless-stopped
 
 networks:
   codearena_net:
@@ -44,3 +87,4 @@ networks:
 
 volumes:
   mongo_data:
+  mongo_config:

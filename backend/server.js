@@ -28,6 +28,17 @@ app.get("/", (req, res) => {
   res.send("Hello CodeArena 🚀");
 });
 
+// Endpoint test
+app.get("/api/users", (req, res) => {
+  // Exemple : renvoyer un tableau d'utilisateurs fictifs
+  res.json([
+    { id: 1, name: "Alice" },
+    { id: 2, name: "Bob" }
+  ]);
+});
+
+
+
 // Gestion des salles multijoueurs
 const rooms = {}; // { roomId: { socketId: { username, score } } }
 
@@ -87,5 +98,5 @@ mongoose
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ Mongo error:", err));
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const PORT = process.env.PORT || 5001;
+server.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
