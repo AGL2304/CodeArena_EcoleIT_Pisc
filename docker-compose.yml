@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.backend
+    container_name: codearena_backend
+    ports:
+      - "5000:5000"
+    env_file: .env
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - mongodb
+    networks:
+      - codearena_net
+
+  mongodb:
+    image: mongo:7
+    container_name: codearena_db
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - codearena_net
+
+  socket:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.backend # si c’est le même serveur Node qui gère socket.io
+    container_name: codearena_socket
+    ports:
+      - "4000:4000"
+    networks:
+      - codearena_net
+
+networks:
+  codearena_net:
+    driver: bridge
+
+volumes:
+  mongo_data:
