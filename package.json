@@ -1,4 +1,13 @@
-"scripts": {
-  "dev": "nodemon server.js",
-  "test": "jest --coverage"
+{
+  "name": "codearena-frontend",
+  "version": "1.0.0",
+  "description": "Front-end CodeArena HTML/Tailwind",
+  "main": "index.html",
+  "scripts": {
+    "dev": "live-server"
+  },
+  "author": "Reda",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {}
 }
