@@ -6,7 +6,7 @@ services:
       dockerfile: ./docker/Dockerfile.backend
     container_name: codearena_backend
     ports:
-      - "5000:5001"
+      - "5000:5001" # Mappe le port 5000 de l'hôte au port 5001 du conteneur
     env_file: .env
     environment:
       - NODE_ENV=development
@@ -14,6 +14,7 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - /var/run/docker.sock:/var/run/docker.sock # Ajouté : Permet au backend de communiquer avec le démon Docker
     depends_on:
       - mongodb
     networks:
@@ -30,7 +31,7 @@ services:
       - "8080:80"
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://localhost:5001
+      - VITE_API_URL=http://localhost:5001 # Assure-toi que cela pointe vers le port exposé de l'hôte si tu accèdes au backend depuis le navigateur
       - VITE_SOCKET_URL=http://localhost:4000
       - HOST=0.0.0.0
     depends_on:
@@ -38,8 +39,6 @@ services:
     networks:
       - codearena_net
     restart: unless-stopped
-
-
 
   # MongoDB
   mongodb:
@@ -80,6 +79,49 @@ services:
     networks:
       - codearena_net
     restart: unless-stopped
+
+  # Services pour l'exécution de code dans différents langages (les exécuteurs)
+  python_executor:
+    build:
+      context: .
+      dockerfile: ./docker/languages/Dockerfile.python
+    container_name: codearena_python_executor
+    networks:
+      - codearena_net
+    # Ces conteneurs n'ont pas besoin d'être redémarrés automatiquement en cas d'erreur
+    # car ils seront lancés à la demande par le backend.
+
+  java_executor:
+    build:
+      context: .
+      dockerfile: ./docker/languages/Dockerfile.java
+    container_name: codearena_java_executor
+    networks:
+      - codearena_net
+
+  cpp_executor:
+    build:
+      context: .
+      dockerfile: ./docker/languages/Dockerfile.cpp
+    container_name: codearena_cpp_executor
+    networks:
+      - codearena_net
+
+  javascript_executor: # Pour l'exécution de code JavaScript (Node.js)
+    build:
+      context: .
+      dockerfile: ./docker/languages/Dockerfile.javascript
+    container_name: codearena_javascript_executor
+    networks:
+      - codearena_net
+
+  php_executor:
+    build:
+      context: .
+      dockerfile: ./docker/languages/Dockerfile.php
+    container_name: codearena_php_executor
+    networks:
+      - codearena_net
 
 networks:
   codearena_net:
