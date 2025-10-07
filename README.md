@@ -219,13 +219,13 @@ Récupérer le profil utilisateur (authentifié)
 
 ### Problèmes
 
-#### GET /api/problems
+#### GET /api/challenges
 Liste tous les problèmes
 
-#### GET /api/problems/:id
+#### GET /api/challenges/:id
 Détails d'un problème spécifique
 
-#### POST /api/problems
+#### POST /api/challenges
 Créer un nouveau problème (admin)
 
 ### Soumissions
@@ -235,7 +235,7 @@ Soumettre une solution
 
 \`\`\`json
 {
-  "problemId": "...",
+  "challengeId": "...",
   "code": "function solution() { ... }",
   "language": "javascript"
 }
@@ -283,7 +283,7 @@ Ce projet est sous licence MIT.
 
 ## 👥 Auteurs
 
-- Votre Équipe - [GitHub](https://github.com/votre-username)
+- Votre Équipe - [GitHub](https://github.com/AGL2304)
 
 ## 🙏 Remerciements
 

@@ -32,8 +32,8 @@
                 <span class="font-semibold">{{ contest.participantsCount }}</span>
               </div>
               <div class="flex justify-between text-sm">
-                <span class="text-gray-600">Problèmes:</span>
-                <span class="font-semibold">{{ contest.problemCount }}</span>
+                <span class="text-gray-600">Challenges:</span>
+                <span class="font-semibold">{{ contest.challengeCount }}</span>
               </div>
               <div class="flex justify-between text-sm">
                 <span class="text-gray-600">Fin dans:</span>

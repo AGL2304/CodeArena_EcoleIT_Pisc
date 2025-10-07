@@ -25,8 +25,8 @@
           <p class="text-3xl font-bold text-blue-600">{{ contest.participantsCount }}</p>
         </div>
         <div class="bg-white rounded-lg shadow p-4">
-          <h3 class="text-lg font-semibold mb-2">Problèmes</h3>
-          <p class="text-3xl font-bold text-blue-600">{{ contest.problemCount }}</p>
+          <h3 class="text-lg font-semibold mb-2">Challenges</h3>
+          <p class="text-3xl font-bold text-blue-600">{{ contest.challengeCount }}</p>
         </div>
         <div class="bg-white rounded-lg shadow p-4">
           <h3 class="text-lg font-semibold mb-2">Points totaux</h3>
@@ -46,7 +46,7 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rang</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participant</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Problèmes résolus</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Challenges résolus</th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -63,7 +63,7 @@
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ participant.score }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ participant.solvedCount }}/{{ contest.problemCount }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ participant.solvedCount }}/{{ contest.challengeCount }}</td>
               </tr>
             </tbody>
           </table>
@@ -71,27 +71,27 @@
       </div>
     </div>
 
-    <!-- Liste des problèmes -->
+    <!-- Liste des challenges -->
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
       <div class="p-6">
-        <h2 class="text-2xl font-bold mb-4">Problèmes</h2>
+        <h2 class="text-2xl font-bold mb-4">Challenges</h2>
         <div class="space-y-4">
-          <div v-for="problem in problems" :key="problem.id" 
+          <div v-for="challenge in challenges" :key="challenge.id" 
                class="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
             <div class="flex items-start justify-between">
               <div>
-                <h3 class="text-lg font-semibold">{{ problem.title }}</h3>
-                <p class="text-gray-600 mt-1">{{ problem.shortDescription }}</p>
+                <h3 class="text-lg font-semibold">{{ challenge.title }}</h3>
+                <p class="text-gray-600 mt-1">{{ challenge.shortDescription }}</p>
                 <div class="flex items-center mt-2 space-x-4">
-                  <span :class="difficultyClass(problem.difficulty)" class="px-3 py-1 rounded-full text-sm">
-                    {{ problem.difficulty }}
+                  <span :class="difficultyClass(challenge.difficulty)" class="px-3 py-1 rounded-full text-sm">
+                    {{ challenge.difficulty }}
                   </span>
-                  <span class="text-sm text-gray-500">{{ problem.points }} points</span>
+                  <span class="text-sm text-gray-500">{{ challenge.points }} points</span>
                 </div>
               </div>
               <router-link 
-                v-if="canAccessProblem(problem)"
-                :to="{ name: 'problem-detail', params: { id: problem.id }}"
+                v-if="canAccessChallenge(challenge)"
+                :to="{ name: 'challenge-detail', params: { id: challenge.id }}"
                 class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
               >
                 Résoudre
@@ -121,7 +121,7 @@ export default {
   setup() {
     const route = useRoute()
     const contest = ref({})
-    const problems = ref([])
+    const challenges = ref([])
     const leaderboard = ref([])
 
     const fetchContest = async () => {
@@ -133,12 +133,12 @@ export default {
       }
     }
 
-    const fetchProblems = async () => {
+    const fetchChallenges = async () => {
       try {
-        const response = await axios.get(`/api/contests/${route.params.id}/problems`)
-        problems.value = response.data
+        const response = await axios.get(`/api/contests/${route.params.id}/challenges`)
+        challenges.value = response.data
       } catch (error) {
-        console.error('Erreur lors du chargement des problèmes:', error)
+        console.error('Erreur lors du chargement des challenges:', error)
       }
     }
 
@@ -178,7 +178,7 @@ export default {
     })
 
     const totalPoints = computed(() => {
-      return problems.value.reduce((sum, problem) => sum + problem.points, 0)
+      return challenges.value.reduce((sum, challenge) => sum + challenge.points, 0)
     })
 
     const formatTimeRemaining = (ms) => {
@@ -211,13 +211,13 @@ export default {
       return classes[difficulty] || ''
     }
 
-    const canAccessProblem = (problem) => {
+    const canAccessChallenge = (challenge) => {
       return isOngoing.value || !isUpcoming.value
     }
 
     onMounted(() => {
       fetchContest()
-      fetchProblems()
+      fetchChallenges()
       fetchLeaderboard()
 
       // Mettre à jour le temps restant
@@ -230,7 +230,7 @@ export default {
 
     return {
       contest,
-      problems,
+      challenges,
       leaderboard,
       isOngoing,
       isUpcoming,
@@ -240,7 +240,7 @@ export default {
       timeLeft,
       timeToStart,
       difficultyClass,
-      canAccessProblem
+      canAccessChallenge
     }
   }
 }

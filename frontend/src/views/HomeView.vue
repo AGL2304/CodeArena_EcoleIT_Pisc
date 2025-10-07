@@ -13,8 +13,8 @@
           <RouterLink to="/register" class="btn btn-primary text-lg px-8 py-3">
             Commencer maintenant
           </RouterLink>
-          <RouterLink to="/problems" class="btn btn-secondary text-lg px-8 py-3">
-            Explorer les problèmes
+          <RouterLink to="/challenge" class="btn btn-secondary text-lg px-8 py-3">
+            Explorer les challenges
           </RouterLink>
         </div>
       </div>
@@ -27,8 +27,8 @@
         <div class="text-gray-600">Développeurs</div>
       </div>
       <div class="card text-center">
-        <div class="text-4xl font-bold text-primary-600 mb-2">{{ stats.problems }}+</div>
-        <div class="text-gray-600">Problèmes</div>
+        <div class="text-4xl font-bold text-primary-600 mb-2">{{ stats.challenges }}+</div>
+        <div class="text-gray-600">Challenges</div>
       </div>
       <div class="card text-center">
         <div class="text-4xl font-bold text-primary-600 mb-2">{{ stats.contests }}+</div>
@@ -134,7 +134,7 @@ import { RouterLink } from 'vue-router'
 
 const stats = ref({
   users: 1250,
-  problems: 150,
+  challenges: 150,
   contests: 45
 })
 

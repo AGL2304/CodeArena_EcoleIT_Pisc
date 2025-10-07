@@ -1,20 +1,20 @@
 <template>
   <div class="container mx-auto px-4 py-8">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Section Description du problème -->
+      <!-- Section Description du challenge -->
       <div class="lg:col-span-2">
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
           <div class="flex items-center justify-between mb-4">
-            <h1 class="text-3xl font-bold">{{ problem.title }}</h1>
+            <h1 class="text-3xl font-bold">{{ challenge.title }}</h1>
             <span :class="difficultyClass" class="px-3 py-1 rounded-full text-sm font-semibold">
-              {{ problem.difficulty }}
+              {{ challenge.difficulty }}
             </span>
           </div>
-          <div class="prose max-w-none" v-html="problem.description"></div>
+          <div class="prose max-w-none" v-html="challenge.description"></div>
           
           <div class="mt-6">
             <h3 class="text-xl font-semibold mb-3">Exemples</h3>
-            <div v-for="(example, index) in problem.examples" :key="index" class="mb-4 p-4 bg-gray-50 rounded-lg">
+            <div v-for="(example, index) in challenge.examples" :key="index" class="mb-4 p-4 bg-gray-50 rounded-lg">
               <div class="mb-2">
                 <span class="font-semibold">Entrée:</span>
                 <pre class="mt-1 bg-gray-100 p-2 rounded">{{ example.input }}</pre>
@@ -44,6 +44,8 @@
               <option value="javascript">JavaScript</option>
               <option value="python">Python</option>
               <option value="java">Java</option>
+              <option value="C++">C++</option>
+              <option value="php">PHP</option>
             </select>
           </div>
 
@@ -86,10 +88,10 @@ import { useRoute } from 'vue-router'
 import axios from 'axios'
 
 export default {
-  name: 'ProblemDetailView',
+  name: 'ChallengeDetailView',
   setup() {
     const route = useRoute()
-    const problem = ref({})
+    const challenge = ref({})
     const selectedLanguage = ref('javascript')
     const code = ref('')
     const isSubmitting = ref(false)
@@ -101,7 +103,7 @@ export default {
         'Moyen': 'bg-yellow-100 text-yellow-800',
         'Difficile': 'bg-red-100 text-red-800'
       }
-      return classes[problem.value.difficulty] || ''
+      return classes[challenge.value.difficulty] || ''
     })
 
     const resultClass = computed(() => {
@@ -111,12 +113,12 @@ export default {
         : 'bg-red-100 text-red-800'
     })
 
-    const fetchProblem = async () => {
+    const fetchChallenge = async () => {
       try {
-        const response = await axios.get(`/api/problems/${route.params.id}`)
-        problem.value = response.data
+        const response = await axios.get(`http://localhost:5001/api/challenges/${route.params.id}`)
+        challenge.value = response.data
       } catch (error) {
-        console.error('Erreur lors du chargement du problème:', error)
+        console.error('Erreur lors du chargement du challenge:', error)
       }
     }
 
@@ -129,7 +131,7 @@ export default {
       isSubmitting.value = true
       try {
         const response = await axios.post(`/api/submissions`, {
-          problemId: route.params.id,
+          challengeId: route.params.id,
           language: selectedLanguage.value,
           code: code.value
         })
@@ -149,10 +151,10 @@ export default {
       }
     }
 
-    onMounted(fetchProblem)
+    onMounted(fetchChallenge)
 
     return {
-      problem,
+      challenge,
       selectedLanguage,
       code,
       isSubmitting,
