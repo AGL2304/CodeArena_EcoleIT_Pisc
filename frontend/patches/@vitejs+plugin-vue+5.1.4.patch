@@ -1,0 +1,12 @@
+diff --git a/node_modules/@vitejs/plugin-vue/dist/index.js b/node_modules/@vitejs/plugin-vue/dist/index.js
+index 1234567..89abcde 100644
+--- a/node_modules/@vitejs/plugin-vue/dist/index.js
++++ b/node_modules/@vitejs/plugin-vue/dist/index.js
+@@
+-function getHash(text) {
+-  return crypto.hash('sha256', text).toString('hex')
+-}
++import { createHash } from 'crypto';
++function getHash(text) {
++  return createHash('sha256').update(text).digest('hex');
++}

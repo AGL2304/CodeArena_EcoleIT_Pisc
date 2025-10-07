@@ -1,21 +1,22 @@
-FROM node:20-alpine AS build
+# Étape 1 : build du frontend
+FROM node:20-bullseye AS build
+
 WORKDIR /app
 
-# Copier package.json et package-lock.json pour installer les dépendances
 COPY ./frontend/package*.json ./
+RUN npm install
 
-# Installer toutes les dépendances (incluant devDependencies)
-RUN npm install --include=dev
-
-# Copier le reste du frontend
-COPY ./frontend ./
-
-# Build pour production
+COPY ./frontend/ .
 RUN npm run build
 
-# Étape Nginx
+# Étape 2 : servir avec Nginx
 FROM nginx:alpine
+
+RUN rm -rf /usr/share/nginx/html/*
 COPY --from=build /app/dist /usr/share/nginx/html
 
-EXPOSE 8080
+# (Optionnel) config custom
+COPY ./frontend/nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

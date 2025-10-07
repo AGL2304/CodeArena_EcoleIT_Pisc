@@ -27,7 +27,7 @@ services:
       dockerfile: ./docker/Dockerfile.frontend
     container_name: codearena_frontend
     ports:
-      - "8080:8080"
+      - "8080:80"
     environment:
       - NODE_ENV=development
       - VITE_API_URL=http://localhost:5001
