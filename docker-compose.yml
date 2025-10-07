@@ -6,7 +6,7 @@ services:
       dockerfile: ./docker/Dockerfile.backend
     container_name: codearena_backend
     ports:
-      - "5000:5000"
+      - "5000:5001"
     env_file: .env
     environment:
       - NODE_ENV=development
@@ -30,7 +30,7 @@ services:
       - "8080:8080"
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://localhost:5000
+      - VITE_API_URL=http://localhost:5001
       - VITE_SOCKET_URL=http://localhost:4000
       - HOST=0.0.0.0
     depends_on:

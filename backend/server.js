@@ -8,42 +8,73 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import challengeRoutes from "./routes/challengeRoutes.js";
 import submissionRoutes from "./routes/submissionRoutes.js";
+import testRoutes from "./routes/testRoutes.js";
 
+// Charger les variables d'environnement
 dotenv.config();
+
+// Créer l'application Express
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+
+// Configurer Socket.io avec CORS amélioré
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+
 
 // Middlewares
 app.use(express.json());
-app.use(cors());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  credentials: true
+}));
+app.use("/api/test", testRoutes);
 
-// Routes
+// Routes API
 app.use("/api/auth", authRoutes);
 app.use("/api/challenges", challengeRoutes);
 app.use("/api/submissions", submissionRoutes);
 
-// Route test
-app.get("/", (req, res) => {
-  res.send("Hello CodeArena 🚀");
+// Route principale améliorée
+app.get("/", (req, res) => {  
+  res.json({
+    message: "🎮 Hello CodeArena! Backend is running...",
+    version: "1.0.0",
+    status: "operational",
+    timestamp: new Date().toISOString()
+  });
 });
 
-// Endpoint test
+// Route de santé
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "healthy",
+    database: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Endpoint test utilisateurs
 app.get("/api/users", (req, res) => {
-  // Exemple : renvoyer un tableau d'utilisateurs fictifs
   res.json([
     { id: 1, name: "Alice" },
     { id: 2, name: "Bob" }
   ]);
 });
 
-
-
 // Gestion des salles multijoueurs
 const rooms = {}; // { roomId: { socketId: { username, score } } }
 
 io.on("connection", (socket) => {
-  console.log("Nouvelle connexion:", socket.id);
+  console.log(`✅ Nouvelle connexion Socket.io: ${socket.id}`);
 
   // Rejoindre une salle
   socket.on("joinRoom", ({ roomId, username }) => {
@@ -53,7 +84,13 @@ io.on("connection", (socket) => {
 
     // Diffuser les participants mis à jour
     io.to(roomId).emit("roomUpdate", rooms[roomId]);
-    console.log(`${username} a rejoint la salle ${roomId}`);
+    console.log(`👤 ${username} a rejoint la salle ${roomId}`);
+  });
+
+  // Rejoindre un concours (feature additionnelle)
+  socket.on("join-contest", (contestId) => {
+    socket.join(`contest-${contestId}`);
+    console.log(`👤 Utilisateur ${socket.id} a rejoint le concours ${contestId}`);
   });
 
   // Mettre à jour le score
@@ -76,27 +113,64 @@ io.on("connection", (socket) => {
       delete rooms[roomId][socket.id];
       io.to(roomId).emit("roomUpdate", rooms[roomId]);
       socket.leave(roomId);
-      console.log(`Utilisateur a quitté la salle ${roomId}`);
+      console.log(`👋 Utilisateur a quitté la salle ${roomId}`);
     }
   });
 
   // Déconnexion
   socket.on("disconnect", () => {
+    // Nettoyer toutes les salles
     for (const roomId in rooms) {
       if (rooms[roomId][socket.id]) {
         delete rooms[roomId][socket.id];
         io.to(roomId).emit("roomUpdate", rooms[roomId]);
       }
     }
-    console.log("Utilisateur déconnecté:", socket.id);
+    console.log(`❌ Déconnexion: ${socket.id}`);
   });
 });
 
-// MongoDB
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("❌ Mongo error:", err));
+// Rendre io accessible dans les routes
+app.set("io", io);
 
+// Gestion des erreurs 404
+app.use((req, res) => {
+  res.status(404).json({
+    error: "Route non trouvée",
+    path: req.originalUrl
+  });
+});
+
+// Gestion des erreurs globales
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    error: "Erreur serveur",
+    message: process.env.NODE_ENV === "development" ? err.message : "Une erreur est survenue"
+  });
+});
+
+// Connexion MongoDB et démarrage du serveur
 const PORT = process.env.PORT || 5001;
-server.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
+
+const startServer = async () => {
+  try {
+    // Connexion à MongoDB
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("✅ MongoDB connected");
+
+    // Démarrage du serveur
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log(`🚀 Serveur démarré sur le port ${PORT}`);
+      console.log(`📡 Environnement: ${process.env.NODE_ENV || "development"}`);
+      console.log(`🔗 URL: http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("❌ Erreur au démarrage du serveur:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
+
+export { app, io };
