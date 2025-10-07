@@ -43,6 +43,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/challenges", challengeRoutes);
 app.use("/api/submissions", submissionRoutes);
 
+
+
 // Route principale améliorée
 app.get("/", (req, res) => {  
   res.json({
@@ -52,6 +54,8 @@ app.get("/", (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+
 
 // Route de santé
 app.get("/api/health", (req, res) => {
