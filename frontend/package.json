@@ -14,7 +14,6 @@
     "lint:eslint": "eslint . --fix",
     "lint": "run-s lint:*",
     "test": "jest --coverage",
-    "postinstall": "patch-package",
     "format": "prettier --write src/"
   },
   "dependencies": {
