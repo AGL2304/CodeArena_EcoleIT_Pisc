@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import HomeView from '@/views/HomeView.vue'
 
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -23,24 +24,32 @@ const router = createRouter({
       meta: { requiresGuest: true }
     },
     {
-      path: '/problems',
-      name: 'problems',
-      component: () => import('@/views/problems/ProblemsView.vue')
+      path: '/challenge',
+      name: 'challenges',
+      component: () => import('@/views/challenge/ChallengeView.vue')
     },
     {
-      path: '/problems/:id',
-      name: 'problem-detail',
-      component: () => import('@/views/problems/ProblemDetailView.vue')
+      path: '/challenge/:id',
+      name: 'challenge-detail',
+      component: () => import('@/views/challenge/ChallengeDetailView.vue')
     },
+    // Liste des concours
     {
       path: '/contests',
       name: 'contests',
       component: () => import('@/views/contests/ContestsView.vue')
     },
+    // Détail d'un concours + liste des challenges du concours
     {
       path: '/contests/:id',
       name: 'contest-detail',
       component: () => import('@/views/contests/ContestDetailView.vue')
+    },
+    // Route pour soumettre du code (si séparée, sinon incluse dans ContestDetailView)
+    {
+      path: '/contests/:id/submit',
+      name: 'contest-submit',
+      component: () => import('@/views/contests/ContestSubmitView.vue')
     },
     {
       path: '/leaderboard',
@@ -57,6 +66,11 @@ const router = createRouter({
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('@/views/NotFoundView.vue')
+    },
+    {
+      path: '/contests/:id/submit',
+      name: 'contest-submit',
+      component: () => import('@/views/contests/ContestSubmitView.vue')
     }
   ]
 })
