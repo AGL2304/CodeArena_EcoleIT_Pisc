@@ -201,11 +201,8 @@ const handleSubmit = async () => {
       
       // Attendre un peu pour l'effet visuel
       setTimeout(() => {
-        // Récupérer la destination de redirection depuis les query params
-        const redirectPath = route.query.redirect || '/dashboard'
-        
-        // Rediriger vers la page demandée ou le dashboard
-        router.push(redirectPath)
+const redirectPath = route.query.redirect || '/dashboard'
+router.push(redirectPath)
       }, 800)
     }
   } catch (error) {

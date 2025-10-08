@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
+     "ci": "npm install && npm run build",
     "build": "vite build",
     "preview": "vite preview",
     "lint:oxlint": "oxlint . --fix -D correctness --ignore-path .gitignore",

@@ -7,7 +7,7 @@ COPY ./frontend/package*.json ./
 RUN npm install
 
 COPY ./frontend/ .
-RUN npm run build
+RUN npm run ci
 
 # Étape 2 : servir avec Nginx
 FROM nginx:alpine

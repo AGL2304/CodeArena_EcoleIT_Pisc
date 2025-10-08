@@ -135,7 +135,7 @@ export default {
 
     const fetchChallenges = async () => {
       try {
-        const response = await axios.get(`/api/contests/${route.params.id}/challenges`)
+        const response = await axios.get(`/api/contest/${route.params.id}/challenge`)
         challenges.value = response.data
       } catch (error) {
         console.error('Erreur lors du chargement des challenges:', error)
