@@ -1,13 +1,13 @@
 <template>
   <div>
-    <h1>Submissions</h1>
+    <h1>Admin Panel</h1>
   </div>
 </template>
 
 <script setup>
-console.log('Submissions view')
+console.log('Admin view')
 </script>
 
 <style scoped>
-/* ton style ici */
+/* tes styles ici */
 </style>
