@@ -5,14 +5,17 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 
+// Charger les variables d'environnement
+dotenv.config();
+
+// ✅ Debug .env
+console.log("🔍 MONGODB_URI =", process.env.MONGODB_URI);
+
+// ✅ Import des routes
 import authRoutes from "./routes/authRoutes.js";
 import challengeRoutes from "./routes/challengeRoutes.js";
 import submissionRoutes from "./routes/submissionRoutes.js";
 import testRoutes from "./routes/testRoutes.js";
-
-
-// Charger les variables d'environnement
-dotenv.config();
 
 // Créer l'application Express
 const app = express();
@@ -25,9 +28,7 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
     credentials: true
   }
-});84
-
-
+});
 
 // Middlewares
 app.use(express.json());
@@ -36,15 +37,17 @@ app.use(cors({
   origin: "*",
   credentials: true
 }));
-app.use("/api/test", testRoutes);
 
 // Routes API
 app.use("/api/auth", authRoutes);
 app.use("/api/challenges", challengeRoutes);
 app.use("/api/submissions", submissionRoutes);
+app.use("/api/test", testRoutes);
+
+
 
 // Route principale améliorée
-app.get("/", (req, res) => {  
+app.get("/", (req, res) => {
   res.json({
     message: "🎮 Hello CodeArena! Backend is running...",
     version: "1.0.0",
@@ -52,6 +55,8 @@ app.get("/", (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+
 
 // Route de santé
 app.get("/api/health", (req, res) => {
@@ -88,7 +93,7 @@ io.on("connection", (socket) => {
     console.log(`👤 ${username} a rejoint la salle ${roomId}`);
   });
 
-  // Rejoindre un concours (feature additionnelle)
+  // Rejoindre un concours
   socket.on("join-contest", (contestId) => {
     socket.join(`contest-${contestId}`);
     console.log(`👤 Utilisateur ${socket.id} a rejoint le concours ${contestId}`);
@@ -99,7 +104,6 @@ io.on("connection", (socket) => {
     if (rooms[roomId] && rooms[roomId][socket.id]) {
       rooms[roomId][socket.id].score = score;
 
-      // Trier par score décroissant pour classement live
       const sortedParticipants = Object.fromEntries(
         Object.entries(rooms[roomId]).sort(([, a], [, b]) => b.score - a.score)
       );
@@ -120,7 +124,6 @@ io.on("connection", (socket) => {
 
   // Déconnexion
   socket.on("disconnect", () => {
-    // Nettoyer toutes les salles
     for (const roomId in rooms) {
       if (rooms[roomId][socket.id]) {
         delete rooms[roomId][socket.id];
@@ -152,15 +155,13 @@ app.use((err, req, res, next) => {
 });
 
 // Connexion MongoDB et démarrage du serveur
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5010;
 
 const startServer = async () => {
   try {
-    // Connexion à MongoDB
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log("✅ MongoDB connected");
 
-    // Démarrage du serveur
     server.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Serveur démarré sur le port ${PORT}`);
       console.log(`📡 Environnement: ${process.env.NODE_ENV || "development"}`);

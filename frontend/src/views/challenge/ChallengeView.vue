@@ -183,7 +183,7 @@ export default {
     const fetchChallenges = async () => {
       try {
         loading.value = true
-        const response = await axios.get('http://localhost:5001/api/challenges')
+        const response = await axios.get('http://localhost:5010/api/challenges')
         challenges.value = response.data
         error.value = null
       } catch (err) {

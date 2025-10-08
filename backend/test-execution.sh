@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="http://localhost:5000/api"
+API_URL="http://localhost:5010/api"
 
 echo "🧪 Test d'exécution de code simple"
 echo ""

@@ -185,7 +185,7 @@ export default {
 
     const fetchLeaderboard = async () => {
       try {
-        const response = await axios.get('http://localhost:5001/api/leaderboard', {
+        const response = await axios.get('http://localhost:5010/api/leaderboard', {
           params: {
             timeFrame: timeFilter.value,
             page: currentPage.value,
