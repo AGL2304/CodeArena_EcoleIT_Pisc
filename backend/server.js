@@ -44,6 +44,8 @@ app.use("/api/challenges", challengeRoutes);
 app.use("/api/submissions", submissionRoutes);
 app.use("/api/test", testRoutes);
 
+
+
 // Route principale améliorée
 app.get("/", (req, res) => {
   res.json({
@@ -53,6 +55,8 @@ app.get("/", (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+
 
 // Route de santé
 app.get("/api/health", (req, res) => {
@@ -151,7 +155,7 @@ app.use((err, req, res, next) => {
 });
 
 // Connexion MongoDB et démarrage du serveur
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5010;
 
 const startServer = async () => {
   try {

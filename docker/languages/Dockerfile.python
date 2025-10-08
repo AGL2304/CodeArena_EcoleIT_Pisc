@@ -5,7 +5,7 @@ FROM python:3.9-slim-buster
 WORKDIR /app
 
 # Copie un script de test simple pour vérifier le fonctionnement
-COPY test_python.py .
+COPY /docker/languages/test_python.py .
 
 # Commande par défaut (peut être écrasée)
 CMD ["python", "./test_python.py"]

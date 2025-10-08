@@ -6,7 +6,7 @@ services:
       dockerfile: ./docker/Dockerfile.backend
     container_name: codearena_backend
     ports:
-      - "5000:5001" # Mappe le port 5000 de l'hôte au port 5001 du conteneur
+      - "5000:5010" # Mappe le port 5000 de l'hôte au port 5010 du conteneur
     env_file: .env
     environment:
       - NODE_ENV=development
@@ -31,7 +31,7 @@ services:
       - "8080:80"
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://localhost:5001 # Assure-toi que cela pointe vers le port exposé de l'hôte si tu accèdes au backend depuis le navigateur
+      - VITE_API_URL=http://localhost:5010 # Assure-toi que cela pointe vers le port exposé de l'hôte si tu accèdes au backend depuis le navigateur
       - VITE_SOCKET_URL=http://localhost:4000
       - HOST=0.0.0.0
     depends_on:

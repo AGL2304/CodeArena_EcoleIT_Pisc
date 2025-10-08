@@ -29,7 +29,7 @@ const cleanupFile = async (filePath) => {
 };
 
 // Exécuter une commande avec timeout
-const execWithTimeout = (command, timeout = 5000) => {
+const execWithTimeout = (command, timeout = 5010) => {
   return new Promise((resolve, reject) => {
     exec(command, { 
       timeout,

@@ -83,7 +83,7 @@ npm install
 Créez le fichier `.env` :
 
 \`\`\`bash
-echo "VITE_API_URL=http://localhost:5000" > .env
+echo "VITE_API_URL=http://localhost:5010" > .env
 \`\`\`
 
 ### 4. Build de l'image Docker sandbox
@@ -98,7 +98,7 @@ docker build -t codearena-sandbox -f Dockerfile.sandbox .
 ### Backend (.env)
 
 \`\`\`env
-PORT=5000
+PORT=5010
 NODE_ENV=development
 MONGODB_URI=mongodb://localhost:27017/codearena
 JWT_SECRET=votre_secret_super_securise
@@ -109,7 +109,7 @@ FRONTEND_URL=http://localhost:5173
 ### Frontend (.env)
 
 \`\`\`env
-VITE_API_URL=http://localhost:5000
+VITE_API_URL=http://localhost:5010
 \`\`\`
 
 ## 🎯 Utilisation
@@ -150,7 +150,7 @@ npm run dev
 ### Accès à l'application
 
 - **Frontend** : http://localhost:5173
-- **Backend API** : http://localhost:5000
+- **Backend API** : http://localhost:5010
 - **MongoDB** : mongodb://localhost:27017
 
 ## 📁 Structure du projet
