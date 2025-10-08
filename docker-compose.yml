@@ -6,7 +6,7 @@ services:
       dockerfile: ./docker/Dockerfile.backend
     container_name: codearena_backend
     ports:
-      - "5000:5001" # Mappe le port 5000 de l'hôte au port 5001 du conteneur
+      - "5000:5010" # Mappe le port 5000 de l'hôte au port 5010 du conteneur
     env_file: .env
     environment:
       - NODE_ENV=development
