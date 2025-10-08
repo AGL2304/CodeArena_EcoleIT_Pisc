@@ -27,8 +27,9 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      console.log('Token invalide ou expiré, déconnexion...')
       localStorage.removeItem('token')
-      window.location.href = '/login'
+     // window.location.href = '/login'
     }
     return Promise.reject(error)
   }

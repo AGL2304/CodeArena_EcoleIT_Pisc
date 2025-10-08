@@ -49,7 +49,7 @@ const results = ref({});
 
 const fetchContest = async () => {
   try {
-    const res = await axios.get(`http://localhost:5010/api/challenges/${route.params.id}`);
+    const res = await axios.get(`http://localhost:5010/api/challenge/${route.params.id}`);
     contest.value = res.data;
     contest.value.challenges.forEach(c => {
       code.value[c._id] = "";

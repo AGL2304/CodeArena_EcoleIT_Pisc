@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  role: { type: String, enum: [ 'user', 'admin'], default: 'user' },
   score: { type: Number, default: 0 },
   rank: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }

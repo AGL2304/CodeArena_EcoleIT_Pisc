@@ -222,7 +222,7 @@
             </div>
 
             <router-link
-              to="/challenges"
+              to="/challenge"
               class="block text-center mt-4 text-purple-400 hover:text-purple-300 text-sm font-medium transition"
             >
               Voir tous les défis →
@@ -444,11 +444,11 @@ const dailyGoal = reactive({
 
 // Navigation
 const goToCompetition = (id) => {
-  router.push(`/competitions/${id}`)
+  router.push(`/contest/${id}`)
 }
 
 const goToChallenge = (id) => {
-  router.push(`/challenges/${id}`)
+  router.push(`/challenge/${id}`)
 }
 
 // Charger les données
