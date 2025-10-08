@@ -83,8 +83,9 @@ services:
   # Services pour l'exécution de code dans différents langages (les exécuteurs)
   python_executor:
     build:
-      context: .
-      dockerfile: ./docker/languages/Dockerfile.python
+      context: ./docker/languages
+      dockerfile: Dockerfile.python
+
     container_name: codearena_python_executor
     networks:
       - codearena_net
@@ -93,8 +94,8 @@ services:
 
   java_executor:
     build:
-      context: .
-      dockerfile: ./docker/languages/Dockerfile.java
+      context: ./docker/languages
+      dockerfile: Dockerfile.java
     container_name: codearena_java_executor
     networks:
       - codearena_net
