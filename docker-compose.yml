@@ -6,7 +6,7 @@ services:
       dockerfile: ./docker/Dockerfile.backend
     container_name: codearena_backend
     ports:
-      - "5000:5010" # Mappe le port 5000 de l'hôte au port 5010 du conteneur
+      - "5010:5010" # Mappe le port 5000 de l'hôte au port 5010 du conteneur
     env_file: .env
     environment:
       - NODE_ENV=development
@@ -108,13 +108,6 @@ services:
     networks:
       - codearena_net
 
-  javascript_executor: # Pour l'exécution de code JavaScript (Node.js)
-    build:
-      context: .
-      dockerfile: ./docker/languages/Dockerfile.javascript
-    container_name: codearena_javascript_executor
-    networks:
-      - codearena_net
 
   php_executor:
     build:
