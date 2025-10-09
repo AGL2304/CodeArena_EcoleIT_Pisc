@@ -1,22 +1,22 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
     <!-- État de chargement -->
     <div v-if="loading" class="min-h-screen flex items-center justify-center">
       <div class="text-center">
-        <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
-        <p class="text-xl text-gray-700">Chargement du challenge...</p>
+        <div class="inline-block animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-purple-500 mb-4"></div>
+        <p class="text-xl text-purple-200">Chargement du challenge...</p>
       </div>
     </div>
 
     <!-- État d'erreur -->
     <div v-else-if="error" class="min-h-screen flex items-center justify-center p-4">
-      <div class="bg-red-50 border-2 border-red-200 rounded-lg p-8 max-w-md text-center">
-        <div class="text-red-600 text-5xl mb-4">⚠️</div>
-        <h2 class="text-2xl font-bold text-red-800 mb-2">Erreur</h2>
-        <p class="text-red-700">{{ error }}</p>
+      <div class="bg-red-900/20 backdrop-blur-sm border border-red-500/50 rounded-xl p-8 max-w-md text-center">
+        <div class="text-red-400 text-5xl mb-4">⚠️</div>
+        <h2 class="text-2xl font-bold text-red-300 mb-2">Erreur</h2>
+        <p class="text-red-200">{{ error }}</p>
         <button 
           @click="fetchChallenge"
-          class="mt-4 bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+          class="mt-6 bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-all transform hover:scale-105 active:scale-95"
         >
           Réessayer
         </button>
@@ -25,40 +25,81 @@
 
     <!-- Contenu principal -->
     <div v-else class="container mx-auto px-4 py-8">
-      <!-- Bouton retour -->
-      <button 
-        @click="goBack"
-        class="mb-6 flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold"
-      >
-        ← Retour aux challenges
-      </button>
+      <!-- En-tête avec navigation et statistiques -->
+      <div class="mb-8 flex flex-col md:flex-row items-start md:items-center justify-between">
+        <button 
+          @click="goBack"
+          class="group mb-4 md:mb-0 flex items-center gap-2 text-purple-300 hover:text-purple-200 font-medium transition-all"
+        >
+          <span class="transform transition-transform group-hover:-translate-x-1">←</span>
+          Retour aux challenges
+        </button>
+
+        <!-- Stats du challenge -->
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-2 text-purple-300">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>{{ challenge.submissions || 0 }} soumissions</span>
+          </div>
+          <div class="flex items-center gap-2 text-purple-300">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+            </svg>
+            <span>{{ challenge.successRate || 0 }}% de réussite</span>
+          </div>
+        </div>
+      </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Section Description du challenge -->
-        <div class="lg:col-span-2">
-          <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <div class="flex items-center justify-between mb-4">
-              <h1 class="text-3xl font-bold">{{ challenge.title }}</h1>
-              <span :class="difficultyClass" class="px-3 py-1 rounded-full text-sm font-semibold">
+        <div class="lg:col-span-2 space-y-6">
+          <!-- En-tête du challenge -->
+          <div class="bg-white/5 backdrop-blur-lg rounded-xl border border-purple-500/20 p-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
+                {{ challenge.title }}
+              </h1>
+              <span 
+                :class="[
+                  difficultyClass,
+                  'px-4 py-1.5 rounded-full text-sm font-medium inline-flex items-center gap-2'
+                ]"
+              >
+                <span class="w-2 h-2 rounded-full" :class="[
+                  {'bg-green-400': challenge.difficulty === 'Facile'},
+                  {'bg-yellow-400': challenge.difficulty === 'Moyen'},
+                  {'bg-red-400': challenge.difficulty === 'Difficile'}
+                ]"></span>
                 {{ challenge.difficulty }}
               </span>
             </div>
-            <div class="prose max-w-none" v-html="challenge.description"></div>
+            <div class="prose prose-invert max-w-none" v-html="challenge.description"></div>
+          </div>
             
-            <div v-if="challenge.examples && challenge.examples.length > 0" class="mt-6">
-              <h3 class="text-xl font-semibold mb-3">Exemples</h3>
-              <div v-for="(example, index) in challenge.examples" :key="index" class="mb-4 p-4 bg-gray-50 rounded-lg">
-                <div class="mb-2">
-                  <span class="font-semibold">Entrée:</span>
-                  <pre class="mt-1 bg-gray-100 p-2 rounded overflow-x-auto">{{ formatValue(example.input) }}</pre>
+          <!-- Section Exemples -->
+          <div v-if="challenge.examples && challenge.examples.length > 0" 
+               class="bg-white/5 backdrop-blur-lg rounded-xl border border-purple-500/20 p-8">
+            <h3 class="text-xl font-semibold mb-6 text-purple-200">Exemples</h3>
+            <div class="space-y-6">
+              <div v-for="(example, index) in challenge.examples" 
+                   :key="index" 
+                   class="relative">
+                <div class="absolute -left-4 top-1/2 -translate-y-1/2 w-2 h-16 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+                <div class="pl-4 space-y-4">
+                  <div class="space-y-2">
+                    <span class="text-sm font-medium text-purple-300">Entrée:</span>
+                    <pre class="bg-slate-900/50 border border-purple-500/20 p-4 rounded-lg overflow-x-auto font-mono text-purple-200">{{ formatValue(example.input) }}</pre>
+                  </div>
+                  <div class="space-y-2">
+                    <span class="text-sm font-medium text-purple-300">Sortie:</span>
+                    <pre class="bg-slate-900/50 border border-purple-500/20 p-4 rounded-lg overflow-x-auto font-mono text-purple-200">{{ formatValue(example.output) }}</pre>
+                  </div>
+                  <p v-if="example.explanation" class="text-purple-200 text-sm italic">
+                    {{ example.explanation }}
+                  </p>
                 </div>
-                <div>
-                  <span class="font-semibold">Sortie:</span>
-                  <pre class="mt-1 bg-gray-100 p-2 rounded overflow-x-auto">{{ formatValue(example.output) }}</pre>
-                </div>
-                <p v-if="example.explanation" class="mt-2 text-gray-600">
-                  <span class="font-semibold">Explication:</span> {{ example.explanation }}
-                </p>
               </div>
             </div>
           </div>
@@ -66,40 +107,76 @@
 
         <!-- Section Soumission de code -->
         <div class="lg:col-span-1">
-          <div class="bg-white rounded-lg shadow-md p-6 sticky top-6">
-            <h2 class="text-xl font-bold mb-4">Soumettre une solution</h2>
+          <div class="bg-white/5 backdrop-blur-lg border border-purple-500/20 rounded-xl p-8 sticky top-6">
+            <h2 class="text-2xl font-bold mb-6 bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
+              Votre Solution
+            </h2>
             
             <!-- Barre d'outils -->
-            <div class="mb-4 flex gap-2 items-center">
-              <div class="flex-1">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Langage
+            <div class="mb-6 space-y-4">
+              <div class="space-y-2">
+                <label class="block text-sm font-medium text-purple-200">
+                  Langage de programmation
                 </label>
-                <select 
-                  v-model="selectedLanguage" 
-                  @change="onLanguageChange"
-                  class="w-full border-2 border-gray-300 rounded-md p-2 bg-white focus:border-blue-500 focus:outline-none"
-                >
-                  <option value="javascript">JavaScript</option>
-                  <option value="python">Python</option>
-                  <option value="java">Java</option>
-                  <option value="cpp">C++</option>
-                  <option value="php">PHP</option>
-                </select>
+                <div class="relative">
+                  <select 
+                    v-model="selectedLanguage" 
+                    @change="onLanguageChange"
+                    class="w-full bg-slate-900/50 border border-purple-500/20 rounded-lg px-4 py-2.5 text-purple-200 appearance-none focus:border-purple-500 focus:outline-none transition-colors"
+                  >
+                    <option value="javascript">JavaScript</option>
+                    <option value="python">Python</option>
+                    <option value="java">Java</option>
+                    <option value="cpp">C++</option>
+                    <option value="php">PHP</option>
+                  </select>
+                  <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                    <svg class="h-5 w-5 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
               </div>
               
-              <div class="flex-1">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Thème
+              <div class="space-y-2">
+                <label class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-purple-200">Thème de l'éditeur</span>
+                  <button
+                    @click="toggleTheme"
+                    class="relative inline-flex h-8 w-14 items-center rounded-full bg-slate-900/50 border border-purple-500/20 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+                    :class="{ 'bg-purple-600': editorTheme === 'vs-dark' }"
+                  >
+                    <span
+                      class="inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-transform duration-200 ease-in-out"
+                      :class="editorTheme === 'vs-dark' ? 'translate-x-7' : 'translate-x-1'"
+                    >
+                      <!-- Icône Soleil -->
+                      <svg
+                        v-if="editorTheme === 'vs'"
+                        class="h-6 w-6 text-yellow-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      <!-- Icône Lune -->
+                      <svg
+                        v-else
+                        class="h-6 w-6 text-purple-300"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
+                        />
+                      </svg>
+                    </span>
+                  </button>
                 </label>
-                <select 
-                  v-model="editorTheme" 
-                  class="w-full border-2 border-gray-300 rounded-md p-2 bg-white focus:border-blue-500 focus:outline-none"
-                >
-                  <option value="vs">Clair</option>
-                  <option value="vs-dark">Sombre</option>
-                  <option value="hc-black">Contraste</option>
-                </select>
               </div>
             </div>
 
@@ -189,6 +266,21 @@ export default {
     const submissionResult = ref(null)
     const loading = ref(true)
     const error = ref(null)
+    
+    const fetchChallenge = async () => {
+      loading.value = true
+      error.value = null
+      
+      try {
+        const response = await axios.get(`/api/challenge/${route.params.id}`)
+        challenge.value = response.data
+      } catch (err) {
+        console.error('Erreur lors du chargement du challenge:', err)
+        error.value = err.response?.data?.message || 'Impossible de charger le challenge'
+      } finally {
+        loading.value = false
+      }
+    }
     const editorTheme = ref('vs-dark')
     const editorInstance = ref(null)
 
@@ -322,20 +414,6 @@ echo solution($input);
       submissionResult.value = null
     }
 
-    const fetchChallenge = async () => {
-      try {
-        loading.value = true
-        error.value = null
-        const response = await axios.get(`http://localhost:5010/api/challenge/${route.params.id}`)
-        challenge.value = response.data
-      } catch (err) {
-        error.value = 'Erreur lors du chargement du challenge'
-        console.error('Erreur:', err)
-      } finally {
-        loading.value = false
-      }
-    }
-
     const submitSolution = async () => {
       if (!code.value.trim()) {
         alert('⚠️ Veuillez entrer du code avant de soumettre')
@@ -376,7 +454,11 @@ echo solution($input);
       router.push('/challenge')
     }
 
-    // Initialiser le code au chargement
+    const toggleTheme = () => {
+      editorTheme.value = editorTheme.value === 'vs' ? 'vs-dark' : 'vs'
+    }
+
+    // Initialiser le code et charger le challenge au montage
     onMounted(() => {
       fetchChallenge()
       code.value = codeTemplates[selectedLanguage.value]
@@ -401,7 +483,8 @@ echo solution($input);
       goBack,
       onEditorMount,
       onLanguageChange,
-      resetCode
+      resetCode,
+      toggleTheme
     }
   }
 }

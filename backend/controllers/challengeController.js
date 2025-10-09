@@ -4,9 +4,23 @@ import Leaderboard from "../models/Leaderboard.js";
 // Créer un challenge
 export const createChallenge = async (req, res) => {
   try {
+    console.log('🔍 Données brutes reçues:', JSON.stringify(req.body, null, 2));
+    
     const { title, description, testCases } = req.body;
-    if (!title || !description || !testCases) {
-      return res.status(400).json({ message: "title, description et testCases sont requis" });
+    console.log('📦 Champs extraits:', {
+      title: title || 'manquant',
+      description: description || 'manquant',
+      testCases: testCases ? JSON.stringify(testCases, null, 2) : 'manquant'
+    });
+    
+    if (!title) {
+      return res.status(400).json({ message: "Le titre est requis" });
+    }
+    if (!description) {
+      return res.status(400).json({ message: "La description est requise" });
+    }
+    if (!testCases || !Array.isArray(testCases) || testCases.length === 0) {
+      return res.status(400).json({ message: "Les tests sont requis et doivent être un tableau non vide" });
     }
 
     const challenge = new Challenge({ title, description, testCases });
@@ -20,9 +34,13 @@ export const createChallenge = async (req, res) => {
 // Récupérer tous les challenges
 export const getAllChallenges = async (req, res) => {
   try {
-    const challenges = await Challenge.find();
+    console.log('📋 Récupération de tous les challenges...')
+    const challenges = await Challenge.find().lean();
+    console.log(`✅ ${challenges.length} challenges trouvés:`, 
+      challenges.map(c => ({ id: c._id, title: c.title })))
     res.json(challenges);
   } catch (err) {
+    console.error('❌ Erreur lors de la récupération des challenges:', err)
     res.status(500).json({ message: "Erreur serveur", error: err.message });
   }
 };
@@ -52,10 +70,18 @@ export const updateChallenge = async (req, res) => {
 // Supprimer un challenge
 export const deleteChallenge = async (req, res) => {
   try {
+    console.log('🗑️ Tentative de suppression du challenge:', req.params.id)
     const challenge = await Challenge.findByIdAndDelete(req.params.id);
-    if (!challenge) return res.status(404).json({ message: "Challenge non trouvé" });
-    res.json({ message: "Challenge supprimé" });
+    
+    if (!challenge) {
+      console.log('❌ Challenge non trouvé:', req.params.id)
+      return res.status(404).json({ message: "Challenge non trouvé" });
+    }
+    
+    console.log('✅ Challenge supprimé avec succès:', challenge.title)
+    res.json({ message: "Challenge supprimé", challengeId: req.params.id });
   } catch (err) {
+    console.error('❌ Erreur lors de la suppression:', err)
     res.status(500).json({ message: "Erreur serveur", error: err.message });
   }
 };
