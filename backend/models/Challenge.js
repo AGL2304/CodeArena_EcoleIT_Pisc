@@ -5,11 +5,20 @@ const challengeSchema = new mongoose.Schema({
   description: String,
   difficulty: { type: String, enum: ['Facile','Moyen','Difficile'], default: 'Facile' },
   
-  // 🔹 testCases avec types flexibles
+  // 🔹 Exemples visibles pour l'utilisateur
+  examples: [
+    {
+      input: { type: mongoose.Schema.Types.Mixed },
+      output: { type: mongoose.Schema.Types.Mixed },
+      explanation: { type: String } // Optionnel
+    }
+  ],
+  
+  // 🔹 Test cases pour validation (cachés)
   testCases: [
     {
-      input: { type: mongoose.Schema.Types.Mixed }, // Accepte tout type
-      expectedOutput: { type: mongoose.Schema.Types.Mixed } // Accepte tout type
+      input: { type: mongoose.Schema.Types.Mixed },
+      expectedOutput: { type: mongoose.Schema.Types.Mixed }
     }
   ],
   

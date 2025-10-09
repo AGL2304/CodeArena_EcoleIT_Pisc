@@ -1,11 +1,11 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
 // Middleware pour protéger les routes
-exports.protect = async (req, res, next) => {
+export const protect = async (req, res, next) => {
   let token;
 
-  // Vérifier si le token existe dans les headers
+  // Vérifier si le token existe dans les headers (format: Bearer TOKEN)
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
@@ -13,7 +13,9 @@ exports.protect = async (req, res, next) => {
     token = req.headers.authorization.split(' ')[1];
   }
 
-  // Vérifier si le token existe
+  console.log("Token reçu:", token);
+
+  // Si aucun token n'est trouvé
   if (!token) {
     return res.status(401).json({
       success: false,
@@ -24,36 +26,62 @@ exports.protect = async (req, res, next) => {
   try {
     // Vérifier le token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("Token décodé:", decoded);
 
-    // Récupérer l'utilisateur
-    req.user = await User.findById(decoded.id).select('-password');
+    // Récupérer l'utilisateur à partir de l'ID décodé du token
+    const user = await User.findById(decoded.userId).select('-password');
+    console.log("Utilisateur trouvé:", user);
 
-    if (!req.user) {
+    if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Utilisateur non trouvé'
+        message: 'Utilisateur non trouvé ou compte supprimé.'
       });
     }
 
-    next();
+    req.user = user;
+    next(); // Passer au middleware suivant ou au contrôleur
   } catch (error) {
     console.error('Erreur de vérification du token:', error);
-    return res.status(401).json({
+
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Votre session a expiré. Veuillez vous reconnecter.'
+      });
+    }
+
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Token invalide. Accès non autorisé.'
+      });
+    }
+
+    return res.status(500).json({
       success: false,
-      message: 'Token invalide ou expiré'
+      message: 'Erreur serveur lors de l\'authentification.'
     });
   }
 };
 
 // Middleware pour vérifier les rôles
-exports.authorize = (...roles) => {
+export const authorize = (...roles) => {
   return (req, res, next) => {
+    if (!req.user || !req.user.role) {
+      return res.status(403).json({
+        success: false,
+        message: 'Accès refusé. Rôle utilisateur non défini ou non authentifié.'
+      });
+    }
+
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        message: 'Vous n\'avez pas les permissions nécessaires'
+        message: `Vous n'avez pas les permissions nécessaires pour accéder à cette ressource. Votre rôle actuel est: ${req.user.role}.`
       });
     }
+
     next();
   };
 };

@@ -15,24 +15,12 @@
         <!-- Navigation Desktop -->
         <div class="hidden md:flex items-center space-x-8">
           <RouterLink 
-            to="/challenge" 
+            v-for="link in visibleLinks" 
+            :key="link.path"
+            :to="link.path" 
             class="text-gray-300 hover:text-blue-400 font-medium transition-colors relative group"
           >
-            Challenges
-            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 group-hover:w-full transition-all duration-300"></span>
-          </RouterLink>
-          <RouterLink 
-            to="/contests" 
-            class="text-gray-300 hover:text-blue-400 font-medium transition-colors relative group"
-          >
-            Concours
-            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 group-hover:w-full transition-all duration-300"></span>
-          </RouterLink>
-          <RouterLink 
-            to="/leaderboard" 
-            class="text-gray-300 hover:text-blue-400 font-medium transition-colors relative group"
-          >
-            Classement
+            {{ link.label }}
             <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 group-hover:w-full transition-all duration-300"></span>
           </RouterLink>
         </div>
@@ -71,20 +59,19 @@
                   class="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-xl border border-gray-700 py-1"
                 >
                   <RouterLink 
-                    to="/profile" 
+                    v-for="menuItem in visibleMenuItems"
+                    :key="menuItem.path"
+                    :to="menuItem.path" 
                     class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-blue-400 transition-colors"
                     @click="closeUserMenu"
                   >
-                    Mon Profil
+                    {{ menuItem.label }}
                   </RouterLink>
-                  <RouterLink 
-                    to="/my-submissions" 
-                    class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-blue-400 transition-colors"
-                    @click="closeUserMenu"
-                  >
-                    Mes Soumissions
-                  </RouterLink>
-                  <hr class="my-1 border-gray-700">
+                  
+                  <template v-if="visibleMenuItems.length > 0">
+                    <hr class="my-1 border-gray-700">
+                  </template>
+                  
                   <button 
                     @click="handleLogout"
                     class="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 transition-colors"
@@ -147,25 +134,13 @@
         <div v-if="isMobileMenuOpen" class="md:hidden pb-4 border-t border-gray-700 mt-2">
           <div class="space-y-2 pt-2">
             <RouterLink 
-              to="/challenge" 
+              v-for="link in visibleLinks"
+              :key="link.path"
+              :to="link.path" 
               class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-blue-400 rounded transition-colors"
               @click="closeMobileMenu"
             >
-              Challenges
-            </RouterLink>
-            <RouterLink 
-              to="/contests" 
-              class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-blue-400 rounded transition-colors"
-              @click="closeMobileMenu"
-            >
-              Concours
-            </RouterLink>
-            <RouterLink 
-              to="/leaderboard" 
-              class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-blue-400 rounded transition-colors"
-              @click="closeMobileMenu"
-            >
-              Classement
+              {{ link.label }}
             </RouterLink>
 
             <hr class="my-2 border-gray-700">
@@ -174,20 +149,17 @@
               <div class="px-4 py-2 text-gray-400 text-sm">
                 Connecté en tant que <span class="text-blue-400 font-semibold">{{ userStore.user?.username }}</span>
               </div>
+              
               <RouterLink 
-                to="/profile" 
+                v-for="menuItem in visibleMenuItems"
+                :key="menuItem.path"
+                :to="menuItem.path" 
                 class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-blue-400 rounded transition-colors"
                 @click="closeMobileMenu"
               >
-                Mon Profil
+                {{ menuItem.label }}
               </RouterLink>
-              <RouterLink 
-                to="/my-submissions" 
-                class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-blue-400 rounded transition-colors"
-                @click="closeMobileMenu"
-              >
-                Mes Soumissions
-              </RouterLink>
+              
               <button 
                 @click="handleLogout"
                 class="block w-full text-left px-4 py-2 text-red-400 hover:bg-gray-700 rounded transition-colors"
@@ -205,7 +177,7 @@
               </RouterLink>
               <RouterLink 
                 to="/register" 
-                class="block mx-4 mt-2 text-center bg-gradient-to-r from-blue-500 to-orange-700 hover:from-blue-600 hover:to-blue-800 text-white px-6 py-2 rounded-lg font-medium transition-all"
+                class="block mx-4 mt-2 text-center bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white px-6 py-2 rounded-lg font-medium transition-all"
                 @click="closeMobileMenu"
               >
                 S'inscrire
@@ -219,7 +191,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
@@ -229,6 +201,44 @@ const userStore = useUserStore()
 const isMobileMenuOpen = ref(false)
 const isUserMenuOpen = ref(false)
 const userMenuRef = ref(null)
+
+// Configuration des liens de navigation
+const navigationLinks = [
+  // Liens pour visiteurs (non connectés)
+  { path: '/about', label: 'À propos', roles: ['guest'] },
+  { path: '/challenge', label: 'Challenges', roles: ['guest', 'user', 'admin'] },
+  
+  // Liens pour utilisateurs connectés
+  { path: '/dashboard', label: 'Tableau de bord', roles: ['user', 'admin'] },
+  { path: '/contest', label: 'Compétitions', roles: ['user', 'admin'] },
+  { path: '/leaderboard', label: 'Classement', roles: ['user', 'admin'] },
+  
+  // Lien pour admin uniquement
+  { path: '/admin', label: 'Administration', roles: ['admin'] },
+]
+
+// Configuration des items du menu déroulant utilisateur
+const userMenuItems = [
+  { path: '/profile', label: 'Mon Profil', roles: ['user', 'admin'] },
+  { path: '/submissions', label: 'Mes Soumissions', roles: ['user', 'admin'] },
+  { path: '/contact', label: 'Support', roles: ['user', 'admin'] },
+]
+
+// Computed pour déterminer le rôle actuel
+const currentRole = computed(() => {
+  if (!userStore.isAuthenticated) return 'guest'
+  return userStore.user?.role || 'user' // Assurez-vous que votre store contient le rôle
+})
+
+// Liens visibles selon le rôle
+const visibleLinks = computed(() => {
+  return navigationLinks.filter(link => link.roles.includes(currentRole.value))
+})
+
+// Items du menu utilisateur visibles selon le rôle
+const visibleMenuItems = computed(() => {
+  return userMenuItems.filter(item => item.roles.includes(currentRole.value))
+})
 
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
