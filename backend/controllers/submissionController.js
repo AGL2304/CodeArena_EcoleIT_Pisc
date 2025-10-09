@@ -2,7 +2,11 @@ import Submission from "../models/Submission.js";
 import Challenge from "../models/Challenge.js";
 import { runCode } from "../utils/codeExecutor.js";
 
-// Helper pour transformer la fonction callback en Promise
+// Import de la version async
+import { runCodeAsync } from "../utils/codeExecutor.js";
+
+// Ou garder cette version si vous préférez
+/*
 const runCodeAsync = (language, code) => {
   return new Promise((resolve, reject) => {
     runCode(language, code, (err, output) => {
@@ -11,6 +15,7 @@ const runCodeAsync = (language, code) => {
     });
   });
 };
+*/
 
 // Fonction pour extraire et préparer le code utilisateur
 const prepareUserCode = (code, language, testInput) => {
