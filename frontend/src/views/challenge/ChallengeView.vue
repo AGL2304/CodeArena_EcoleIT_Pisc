@@ -64,9 +64,9 @@
                 class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
               >
                 <option value="all">Toutes</option>
-                <option value="easy">Facile</option>
-                <option value="medium">Moyen</option>
-                <option value="difficulty">Difficile</option>
+                <option value="Facile">Facile</option>
+                <option value="Moyen">Moyen</option>
+                <option value="Difficile">Difficile</option>
               </select>
             </div>
           </div>
@@ -89,7 +89,7 @@
         <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div
             v-for="challenge in filteredChallenges"
-            :key="challenge.id"
+            :key="challenge._id"
             class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden border-2 border-gray-100"
           >
             <!-- Badge de difficulté -->
@@ -99,7 +99,7 @@
                   {{ challenge.difficulty }}
                 </span>
                 <span class="text-white text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
-                  #{{ challenge.id }}
+                  #{{ challenge._id.slice(-6) }}
                 </span>
               </div>
             </div>
@@ -123,20 +123,20 @@
                 <div class="bg-gray-50 rounded-lg p-3 text-xs">
                   <div class="flex items-start gap-2">
                     <span class="font-semibold text-gray-700">Entrée:</span>
-                    <pre class="flex-1 bg-white p-2 rounded text-xs overflow-x-auto">{{ challenge.examples[0].input }}</pre>
+                    <pre class="flex-1 bg-white p-2 rounded text-xs overflow-x-auto">{{ formatValue(challenge.examples[0].input) }}</pre>
                   </div>
                   <div class="flex items-start gap-2 mt-2">
                     <span class="font-semibold text-gray-700">Sortie:</span>
-                    <pre class="flex-1 bg-white p-2 rounded text-xs overflow-x-auto">{{ challenge.examples[0].output }}</pre>
+                    <pre class="flex-1 bg-white p-2 rounded text-xs overflow-x-auto">{{ formatValue(challenge.examples[0].output) }}</pre>
                   </div>
                 </div>
               </div>
 
               <!-- Bouton d'action -->
               <button
-                @click="goToChallenge(challenge.id)"
+                @click="goToChallenge(challenge._id)"
                 class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold py-3 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105"
-              >
+                type="button">
                 Relever le défi →
               </button>
             </div>
@@ -171,11 +171,18 @@ export default {
       return colors[difficulty] || 'bg-gray-100 text-gray-800 border-gray-300'
     }
 
+    const formatValue = (value) => {
+      if (typeof value === 'object') {
+        return JSON.stringify(value, null, 2)
+      }
+      return value
+    }
+
     const filteredChallenges = computed(() => {
       return challenges.value.filter(challenge => {
         const matchesDifficulty = selectedDifficulty.value === 'all' || challenge.difficulty === selectedDifficulty.value
         const matchesSearch = challenge.title.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
-                             challenge.description.toLowerCase().includes(searchTerm.value.toLowerCase())
+                             (challenge.description && challenge.description.toLowerCase().includes(searchTerm.value.toLowerCase()))
         return matchesDifficulty && matchesSearch
       })
     })
@@ -183,7 +190,7 @@ export default {
     const fetchChallenges = async () => {
       try {
         loading.value = true
-        const response = await axios.get('http://localhost:5010/api/challenges')
+        const response = await axios.get('http://localhost:5010/api/challenge')
         challenges.value = response.data
         error.value = null
       } catch (err) {
@@ -195,7 +202,11 @@ export default {
     }
 
     const goToChallenge = (id) => {
-      router.push(`/challenges/${id}`)
+      if (!id) {
+        console.error('ID du challenge manquant!')
+        return
+      }
+      router.push(`/challenge/${id}`)
     }
 
     onMounted(fetchChallenges)
@@ -208,6 +219,7 @@ export default {
       searchTerm,
       filteredChallenges,
       getDifficultyColor,
+      formatValue,
       fetchChallenges,
       goToChallenge
     }

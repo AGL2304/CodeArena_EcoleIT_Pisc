@@ -20,7 +20,7 @@
           <h3 class="text-white font-semibold mb-4">Plateforme</h3>
           <ul class="space-y-2">
             <li>
-              <RouterLink to="/challenges" class="text-gray-400 hover:text-blue-400 transition-colors text-sm">
+              <RouterLink to="/challenge" class="text-gray-400 hover:text-blue-400 transition-colors text-sm">
                 Challenges
               </RouterLink>
             </li>

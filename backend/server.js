@@ -40,7 +40,7 @@ app.use(cors({
 
 // Routes API
 app.use("/api/auth", authRoutes);
-app.use("/api/challenges", challengeRoutes);
+app.use("/api/challenge", challengeRoutes);
 app.use("/api/submissions", submissionRoutes);
 app.use("/api/test", testRoutes);
 
