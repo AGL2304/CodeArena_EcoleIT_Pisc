@@ -69,47 +69,100 @@
           <div class="bg-white rounded-lg shadow-md p-6 sticky top-6">
             <h2 class="text-xl font-bold mb-4">Soumettre une solution</h2>
             
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Langage
-              </label>
-              <select v-model="selectedLanguage" class="w-full border rounded-md p-2">
-                <option value="javascript">JavaScript</option>
-                <option value="python">Python</option>
-                <option value="java">Java</option>
-                <option value="cpp">C++</option>
-                <option value="php">PHP</option>
-              </select>
+            <!-- Barre d'outils -->
+            <div class="mb-4 flex gap-2 items-center">
+              <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Langage
+                </label>
+                <select 
+                  v-model="selectedLanguage" 
+                  @change="onLanguageChange"
+                  class="w-full border-2 border-gray-300 rounded-md p-2 bg-white focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="javascript">JavaScript</option>
+                  <option value="python">Python</option>
+                  <option value="java">Java</option>
+                  <option value="cpp">C++</option>
+                  <option value="php">PHP</option>
+                </select>
+              </div>
+              
+              <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Thème
+                </label>
+                <select 
+                  v-model="editorTheme" 
+                  class="w-full border-2 border-gray-300 rounded-md p-2 bg-white focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="vs">Clair</option>
+                  <option value="vs-dark">Sombre</option>
+                  <option value="hc-black">Contraste</option>
+                </select>
+              </div>
             </div>
 
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Code
-              </label>
-              <textarea
-                v-model="code"
-                rows="10"
-                class="w-full border rounded-md p-2 font-mono text-sm"
-                placeholder="Écrivez votre code ici..."
-              ></textarea>
+            <!-- Monaco Editor -->
+            <div class="mb-4 border-2 border-gray-300 rounded-lg overflow-hidden h-[80vh]">
+                    <vue-monaco-editor
+                      v-model:value="code"
+                      :language="monacoLanguage"
+                      :theme="editorTheme"
+                      height="100%"   
+                      :options="editorOptions"
+                      @mount="onEditorMount"
+                    />
             </div>
 
-            <button
-              @click="submitSolution"
-              class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-              :disabled="isSubmitting"
-            >
-              {{ isSubmitting ? 'Soumission en cours...' : 'Soumettre' }}
-            </button>
 
-            <div v-if="submissionResult" class="mt-4">
-              <div :class="resultClass" class="p-4 rounded-md">
-                <h3 class="font-semibold mb-2">Résultat</h3>
-                <p>{{ submissionResult.message }}</p>
-                <div v-if="submissionResult.score !== undefined" class="mt-2">
-                  <span class="font-semibold">Score:</span> {{ submissionResult.score }}/100
+            <!-- Boutons d'action -->
+            <div class="flex gap-2 mb-4">
+              <button
+                @click="resetCode"
+                class="flex-1 bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="isSubmitting"
+              >
+                🔄 Réinitialiser
+              </button>
+              <button
+                @click="submitSolution"
+                class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="isSubmitting"
+              >
+                {{ isSubmitting ? '⏳ Soumission...' : '🚀 Soumettre' }}
+              </button>
+            </div>
+
+            <!-- Raccourcis clavier -->
+            <div class="text-xs text-gray-600 mb-4 bg-gray-50 p-3 rounded border border-gray-200">
+              <p class="font-semibold mb-1">💡 Raccourcis clavier:</p>
+              <ul class="space-y-1">
+                <li>• <kbd class="px-1 py-0.5 bg-white border border-gray-300 rounded text-xs">Ctrl+S</kbd> Soumettre</li>
+                <li>• <kbd class="px-1 py-0.5 bg-white border border-gray-300 rounded text-xs">Ctrl+/</kbd> Commenter</li>
+                <li>• <kbd class="px-1 py-0.5 bg-white border border-gray-300 rounded text-xs">Ctrl+Z</kbd> Annuler</li>
+              </ul>
+            </div>
+
+            <!-- Résultats -->
+            <div v-if="submissionResult" class="mt-4 animate-fadeIn">
+              <div :class="resultClass" class="p-4 rounded-lg shadow-sm">
+                <h3 class="font-semibold mb-2 text-lg">📊 Résultat</h3>
+                <p class="text-base">{{ submissionResult.message }}</p>
+                <div v-if="submissionResult.score !== undefined" class="mt-3">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="font-semibold text-sm">Score:</span> 
+                    <span class="font-bold text-lg">{{ submissionResult.score }}/100</span>
+                  </div>
+                  <div class="bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div 
+                      :class="submissionResult.score === 100 ? 'bg-green-500' : 'bg-yellow-500'"
+                      class="h-3 rounded-full transition-all duration-700 ease-out"
+                      :style="{ width: submissionResult.score + '%' }"
+                    ></div>
+                  </div>
                 </div>
-                <pre v-if="submissionResult.details" class="mt-2 text-sm bg-gray-100 p-2 rounded overflow-x-auto">{{ submissionResult.details }}</pre>
+                <pre v-if="submissionResult.details" class="mt-3 text-xs bg-white bg-opacity-50 p-3 rounded overflow-x-auto border border-gray-300">{{ submissionResult.details }}</pre>
               </div>
             </div>
           </div>
@@ -136,12 +189,102 @@ export default {
     const submissionResult = ref(null)
     const loading = ref(true)
     const error = ref(null)
+    const editorTheme = ref('vs-dark')
+    const editorInstance = ref(null)
+
+    // Templates de code par défaut
+    const codeTemplates = {
+      javascript: `// Écrivez votre solution ici
+function solution(input) {
+  // Votre code
+  
+  return result;
+}
+
+// Exemple d'utilisation
+console.log(solution(input));`,
+      python: `# Écrivez votre solution ici
+def solution(input):
+    # Votre code
+    
+    return result
+
+# Exemple d'utilisation
+print(solution(input))`,
+      java: `// Écrivez votre solution ici
+public class Solution {
+    public static Object solution(Object input) {
+        // Votre code
+        
+        return result;
+    }
+    
+    public static void main(String[] args) {
+        System.out.println(solution(input));
+    }
+}`,
+      cpp: `// Écrivez votre solution ici
+#include <iostream>
+using namespace std;
+
+auto solution(auto input) {
+    // Votre code
+    
+    return result;
+}
+
+int main() {
+    cout << solution(input) << endl;
+    return 0;
+}`,
+      php: `<?php
+// Écrivez votre solution ici
+function solution($input) {
+    // Votre code
+    
+    return $result;
+}
+
+// Exemple d'utilisation
+echo solution($input);
+?>`
+    }
+
+    // Mapping des langages pour Monaco
+    const languageMap = {
+      javascript: 'javascript',
+      python: 'python',
+      java: 'java',
+      cpp: 'cpp',
+      php: 'php'
+    }
+
+    const monacoLanguage = computed(() => languageMap[selectedLanguage.value] || 'javascript')
+
+    const editorOptions = {
+      automaticLayout: true,
+      fontSize: 14,
+      fontFamily: 'Consolas, "Courier New", monospace',
+      minimap: { enabled: false },
+      scrollBeyondLastLine: false,
+      lineNumbers: 'on',
+      roundedSelection: false,
+      readOnly: false,
+      cursorStyle: 'line',
+      formatOnPaste: true,
+      formatOnType: true,
+      suggestOnTriggerCharacters: true,
+      acceptSuggestionOnEnter: 'on',
+      tabSize: 2,
+      wordWrap: 'on',
+      padding: { top: 10, bottom: 10 }
+    }
 
     const difficultyClass = computed(() => {
       const classes = {
-        'Facile': 'bg-green-100 text-green-800',
-        'Moyen': 'bg-yellow-100 text-yellow-800',
-        'Difficile': 'bg-red-100 text-red-800'
+        'Facile': 'bg-green-100 text-green-800 border-2 border-green-300',
+        'Moyen': 'bg-yellow-100 text-yellow-800 border-2 border-yellow-300',
+        'Difficile': 'bg-red-100 text-red-800 border-2 border-red-300'
       }
       return classes[challenge.value.difficulty] || ''
     })
@@ -149,8 +292,8 @@ export default {
     const resultClass = computed(() => {
       if (!submissionResult.value) return ''
       return submissionResult.value.success
-        ? 'bg-green-100 text-green-800 border-2 border-green-300'
-        : 'bg-red-100 text-red-800 border-2 border-red-300'
+        ? 'bg-green-50 text-green-900 border-2 border-green-300'
+        : 'bg-red-50 text-red-900 border-2 border-red-300'
     })
 
     const formatValue = (value) => {
@@ -158,6 +301,25 @@ export default {
         return JSON.stringify(value, null, 2)
       }
       return value
+    }
+
+    const onEditorMount = (editor) => {
+      editorInstance.value = editor
+      
+      // Raccourci Ctrl+S pour soumettre
+      editor.addCommand(window.monaco.KeyMod.CtrlCmd | window.monaco.KeyCode.KeyS, () => {
+        submitSolution()
+      })
+    }
+
+    const onLanguageChange = () => {
+      code.value = codeTemplates[selectedLanguage.value]
+      submissionResult.value = null
+    }
+
+    const resetCode = () => {
+      code.value = codeTemplates[selectedLanguage.value]
+      submissionResult.value = null
     }
 
     const fetchChallenge = async () => {
@@ -176,7 +338,7 @@ export default {
 
     const submitSolution = async () => {
       if (!code.value.trim()) {
-        alert('Veuillez entrer du code avant de soumettre')
+        alert('⚠️ Veuillez entrer du code avant de soumettre')
         return
       }
 
@@ -195,7 +357,7 @@ export default {
         const submission = response.data.submission
         submissionResult.value = {
           success: submission.status === 'Success',
-          message: submission.status === 'Success' ? '✅ Tests réussis!' : '❌ Tests échoués',
+          message: submission.status === 'Success' ? '✅ Tous les tests sont passés avec succès!' : '❌ Certains tests ont échoué',
           details: submission.output || submission.error,
           score: submission.score
         }
@@ -211,10 +373,14 @@ export default {
     }
 
     const goBack = () => {
-      router.push('/challenges')
+      router.push('/challenge')
     }
 
-    onMounted(fetchChallenge)
+    // Initialiser le code au chargement
+    onMounted(() => {
+      fetchChallenge()
+      code.value = codeTemplates[selectedLanguage.value]
+    })
 
     return {
       challenge,
@@ -224,13 +390,40 @@ export default {
       submissionResult,
       loading,
       error,
+      editorTheme,
+      monacoLanguage,
+      editorOptions,
       difficultyClass,
       resultClass,
       formatValue,
       submitSolution,
       fetchChallenge,
-      goBack
+      goBack,
+      onEditorMount,
+      onLanguageChange,
+      resetCode
     }
   }
 }
 </script>
+
+<style scoped>
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+kbd {
+  font-family: monospace;
+}
+</style>

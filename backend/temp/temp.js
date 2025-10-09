@@ -1,1 +1,8 @@
-console.log("Hello World!"),
+
+        function solution(input) {
+  // Votre code
+  
+  return result;
+}
+        console.log(JSON.stringify(solution("")));
+      
