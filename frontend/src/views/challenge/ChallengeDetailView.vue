@@ -337,40 +337,74 @@ echo solution($input);
     }
 
     const submitSolution = async () => {
-      if (!code.value.trim()) {
-        alert('⚠️ Veuillez entrer du code avant de soumettre')
-        return
-      }
+  if (!code.value.trim()) {
+    alert('⚠️ Veuillez entrer du code avant de soumettre')
+    return
+  }
 
-      isSubmitting.value = true
-      submissionResult.value = null
-      
-      try {
-        const userId = localStorage.getItem('userId') || 'anonymous'
-        const response = await axios.post('http://localhost:5010/api/submissions', {
-          userId: userId,
-          challengeId: route.params.id,
-          language: selectedLanguage.value,
-          code: code.value
-        })
-        
-        const submission = response.data.submission
-        submissionResult.value = {
-          success: submission.status === 'Success',
-          message: submission.status === 'Success' ? '✅ Tous les tests sont passés avec succès!' : '❌ Certains tests ont échoué',
-          details: submission.output || submission.error,
-          score: submission.score
-        }
-      } catch (err) {
-        submissionResult.value = {
-          success: false,
-          message: '❌ Erreur lors de la soumission',
-          details: err.response?.data?.message || err.message
-        }
-      } finally {
-        isSubmitting.value = false
-      }
+  isSubmitting.value = true
+  submissionResult.value = null
+  
+  try {
+    const userId = localStorage.getItem('userId') || 'anonymous'
+    const payload = {
+      userId: userId,
+      challengeId: route.params.id,
+      language: selectedLanguage.value,
+      code: code.value
     }
+    
+    console.log('📤 Envoi de la soumission:', {
+      userId,
+      challengeId: route.params.id,
+      language: selectedLanguage.value,
+      codeLength: code.value.length
+    })
+    
+    const response = await axios.post('http://localhost:5010/api/submissions', payload, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 30000 // 30 secondes
+    })
+    
+    console.log('📥 Réponse reçue:', response.data)
+    
+    const submission = response.data.submission
+      submissionResult.value = {
+        success: submission.status === 'Success',
+        message: submission.status === 'Success' 
+          ? '✅ Tous les tests sont passés avec succès!' 
+          : '❌ Certains tests ont échoué',
+        details: submission.output || submission.error,
+        score: submission.score
+      }
+    } catch (err) {
+      console.error('❌ Erreur complète:', err)
+      console.error('❌ Réponse erreur:', err.response?.data)
+      console.error('❌ Status:', err.response?.status)
+      
+      let errorMessage = 'Erreur lors de la soumission'
+      
+      if (err.code === 'ECONNABORTED') {
+        errorMessage = 'Timeout: le serveur met trop de temps à répondre'
+      } else if (err.response) {
+        errorMessage = err.response.data?.message || err.response.data?.error || 'Erreur serveur'
+      } else if (err.request) {
+        errorMessage = 'Aucune réponse du serveur. Vérifiez que le backend est lancé.'
+      } else {
+        errorMessage = err.message
+      }
+      
+      submissionResult.value = {
+        success: false,
+        message: '❌ ' + errorMessage,
+        details: err.response?.data?.stack || err.stack
+      }
+    } finally {
+      isSubmitting.value = false
+    }
+}
 
     const goBack = () => {
       router.push('/challenge')

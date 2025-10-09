@@ -27,11 +27,36 @@ const cleanupOldFiles = () => {
       }
     });
   } catch (err) {
-    console.error('Erreur lors du nettoyage:', err);
+    console.error('⚠️ Erreur lors du nettoyage:', err);
   }
 };
 
 cleanupOldFiles();
+
+/**
+ * Détecte la commande Python disponible sur le système
+ */
+const detectPythonCommand = () => {
+  const commands = process.platform === 'win32' 
+    ? ['python', 'python3', 'py'] 
+    : ['python3', 'python'];
+  
+  for (const cmd of commands) {
+    try {
+      const result = exec(`${cmd} --version`, { timeout: 1000 });
+      if (result) {
+        console.log(`✅ Python détecté: ${cmd}`);
+        return cmd;
+      }
+    } catch (err) {
+      // Continuer avec la commande suivante
+    }
+  }
+  
+  return process.platform === 'win32' ? 'python' : 'python3';
+};
+
+const pythonCommand = detectPythonCommand();
 
 /**
  * Exécute du code dans un environnement isolé
@@ -45,7 +70,7 @@ export const runCode = (language, code, callback) => {
   const fileId = `${timestamp}_${randomId}`;
   
   let filePath, command;
-  const timeout = 5000; // 5 secondes max
+  const timeout = 10000; // 10 secondes max pour éviter les timeouts trop courts
 
   try {
     switch (language.toLowerCase()) {
@@ -60,7 +85,7 @@ export const runCode = (language, code, callback) => {
       case 'py':
         filePath = path.join(tempDir, `${fileId}.py`);
         fs.writeFileSync(filePath, code);
-        command = `python3 "${filePath}"`;
+        command = `${pythonCommand} "${filePath}"`;
         break;
 
       case 'java':
@@ -100,7 +125,8 @@ export const runCode = (language, code, callback) => {
       {
         timeout: timeout,
         maxBuffer: 1024 * 1024, // 1MB max output
-        killSignal: 'SIGTERM'
+        killSignal: 'SIGTERM',
+        windowsHide: true // Cacher la fenêtre sur Windows
       },
       (error, stdout, stderr) => {
         // Nettoyer les fichiers temporaires
@@ -123,11 +149,12 @@ export const runCode = (language, code, callback) => {
             }
           }
         } catch (cleanupErr) {
-          console.error('Erreur de nettoyage:', cleanupErr);
+          console.error('⚠️ Erreur de nettoyage:', cleanupErr);
         }
 
         // Gérer les erreurs
         if (error) {
+          console.error('❌ Erreur d\'exécution:', error.message);
           if (error.killed) {
             return callback(new Error('Timeout: Le code a pris trop de temps à s\'exécuter'));
           }
@@ -135,9 +162,11 @@ export const runCode = (language, code, callback) => {
         }
 
         if (stderr && !stdout) {
+          console.error('❌ Stderr:', stderr);
           return callback(new Error(stderr));
         }
 
+        console.log('✅ Output:', stdout.substring(0, 100) + (stdout.length > 100 ? '...' : ''));
         // Retourner la sortie standard
         callback(null, stdout);
       }
@@ -146,12 +175,13 @@ export const runCode = (language, code, callback) => {
     // Timeout de sécurité supplémentaire
     setTimeout(() => {
       if (execProcess.exitCode === null) {
+        console.warn('⚠️ Forçage de l\'arrêt du processus');
         execProcess.kill('SIGKILL');
       }
     }, timeout + 1000);
 
   } catch (err) {
-    console.error('Erreur dans runCode:', err);
+    console.error('❌ Erreur dans runCode:', err);
     callback(err);
   }
 };
@@ -160,7 +190,10 @@ export const runCode = (language, code, callback) => {
 export const runCodeAsync = (language, code) => {
   return new Promise((resolve, reject) => {
     runCode(language, code, (err, output) => {
-      if (err) return reject(err);
+      if (err) {
+        console.error('❌ Erreur async:', err.message);
+        return reject(err);
+      }
       resolve(output);
     });
   });
