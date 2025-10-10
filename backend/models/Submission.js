@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 
 const submissionSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: null},
   challenge: { type: mongoose.Schema.Types.ObjectId, ref: 'Challenge', required: true },
   code: { type: String, required: true },
-  language: { type: String, enum: ['python', 'javascript'], default: 'javascript' },
+  language: { type: String, enum: ['python', 'php', 'java'], default: 'python' },
   languageVersion: { type: String }, // facultatif, ex: "Python 3.11"
   score: { type: Number, default: 0 },
   status: { type: String, enum: ['Pending', 'Success', 'Failed'], default: 'Pending' },
@@ -19,3 +19,7 @@ const submissionSchema = new mongoose.Schema({
 submissionSchema.index({ challenge: 1, user: 1 });
 
 export default mongoose.model('Submission', submissionSchema);
+
+
+
+

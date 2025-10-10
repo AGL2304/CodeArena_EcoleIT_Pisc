@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import HomeView from '@/views/HomeView.vue'
 
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -99,7 +98,29 @@ const router = createRouter({
     },
 
     // ========================================
-    // 🔹 CONCOURS/COMPÉTITIONS (Compatible avec votre version existante)
+    // 🔹 CHAT / MESSAGES
+    // ========================================
+    {
+      path: '/messages',
+      name: 'messages',
+      component: () => import('@/views/ChatView.vue'),
+      meta: { 
+        requiresAuth: true,
+        title: 'Messages - CodeArena'
+      }
+    },
+    {
+      path: '/messages/:roomId',
+      name: 'chat-room',
+      component: () => import('@/views/ChatView.vue'),
+      meta: { 
+        requiresAuth: true,
+        title: 'Chat - CodeArena'
+      }
+    },
+
+    // ========================================
+    // 🔹 CONCOURS/COMPÉTITIONS
     // ========================================
     {
       path: '/contests',
@@ -128,16 +149,6 @@ const router = createRouter({
         title: 'Soumettre - CodeArena'
       }
     },
-
-    // Alias pour contests (si vous voulez utiliser les deux)
-    {
-      path: '/contest',
-      redirect: '/contest'
-    },
-    {
-      path: '/contest/:id',
-      redirect: to => `/contest/${to.params.id}`
-    },
     {
       path: '/contest/:id/room',
       name: 'contest-room',
@@ -146,6 +157,12 @@ const router = createRouter({
         requiresAuth: true,
         title: 'Salle de compétition - CodeArena'
       }
+    },
+
+    // Alias pour contests
+    {
+      path: '/contest',
+      redirect: '/contests'
     },
 
     // ========================================
@@ -160,9 +177,8 @@ const router = createRouter({
       }
     },
 
-
     // ========================================
-    // 🔹 ADMINISTRATION (Optionnel)
+    // 🔹 ADMINISTRATION
     // ========================================
     {
       path: '/admin',
@@ -185,10 +201,9 @@ const router = createRouter({
           component: () => import('@/views/admin/AdminChallengesView.vue')
         },
         {
-          path: '/contests',
+          path: 'contests',
           name: 'admin-contests',
           component: () => import('@/views/admin/AdminContestView.vue')
-
         }
       ]
     },
@@ -260,10 +275,3 @@ router.afterEach(() => {
 })
 
 export default router
-
-
-
-
-
-
-

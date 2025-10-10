@@ -10,7 +10,7 @@ services:
     env_file: .env
     environment:
       - NODE_ENV=development
-      - MONGO_URI=mongodb://mongodb:27017/codearena
+      - MONGODB_URI=mongodb://mongodb:27017/codearena
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -28,10 +28,10 @@ services:
       dockerfile: ./docker/Dockerfile.frontend
     container_name: codearena_frontend
     ports:
-      - "8080:80"
+      - "80:80"
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://localhost:5010 # Assure-toi que cela pointe vers le port exposé de l'hôte si tu accèdes au backend depuis le navigateur
+      - VITE_API_URL=http://codearena_backend:5010 # Assure-toi que cela pointe vers le port exposé de l'hôte si tu accèdes au backend depuis le navigateur
       - VITE_SOCKET_URL=http://localhost:4000
       - HOST=0.0.0.0
     depends_on:

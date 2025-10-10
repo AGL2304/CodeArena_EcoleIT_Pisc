@@ -15,7 +15,7 @@
         <h2 class="text-2xl font-bold text-red-800 mb-2">Erreur</h2>
         <p class="text-red-700">{{ error }}</p>
         <button 
-          @click="fetchChallenges"
+          @click="refreshChallenges"
           class="mt-4 bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
         >
           Réessayer
@@ -32,7 +32,7 @@
             🚀 Challenges de Programmation
           </h1>
           <p class="text-gray-600 text-lg">
-            Explorez {{ challenges.length }} challenges pour améliorer vos compétences
+            Explorez {{ challengesStore.challenges.length }} challenges pour améliorer vos compétences
           </p>
         </div>
       </div>
@@ -64,9 +64,9 @@
                 class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
               >
                 <option value="all">Toutes</option>
-                <option value="Facile">Facile</option>
-                <option value="Moyen">Moyen</option>
-                <option value="Difficile">Difficile</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
               </select>
             </div>
           </div>
@@ -147,84 +147,61 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import { useChallengesStore } from '@/stores/challenges'
 
-export default {
-  name: 'ChallengesListView',
-  setup() {
-    const router = useRouter()
-    const challenges = ref([])
-    const loading = ref(true)
-    const error = ref(null)
-    const selectedDifficulty = ref('all')
-    const searchTerm = ref('')
+const router = useRouter()
+const challengesStore = useChallengesStore()
 
-    const getDifficultyColor = (difficulty) => {
-      const colors = {
-        'Facile': 'bg-green-100 text-green-800 border-green-300',
-        'Moyen': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-        'Difficile': 'bg-red-100 text-red-800 border-red-300'
-      }
-      return colors[difficulty] || 'bg-gray-100 text-gray-800 border-gray-300'
-    }
+const searchTerm = ref('')
+const selectedDifficulty = ref('all')
 
-    const formatValue = (value) => {
-      if (typeof value === 'object') {
-        return JSON.stringify(value, null, 2)
-      }
-      return value
-    }
+// État réactif
+const loading = computed(() => challengesStore.isLoading)
+const error = computed(() => challengesStore.error)
 
-    const filteredChallenges = computed(() => {
-      return challenges.value.filter(challenge => {
-        const matchesDifficulty = selectedDifficulty.value === 'all' || challenge.difficulty === selectedDifficulty.value
-        const matchesSearch = challenge.title.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
-                             (challenge.description && challenge.description.toLowerCase().includes(searchTerm.value.toLowerCase()))
-        return matchesDifficulty && matchesSearch
-      })
-    })
+// Filtrage des challenges
+const filteredChallenges = computed(() => {
+  return challengesStore.filteredChallenges(searchTerm.value, selectedDifficulty.value)
+})
 
-    const fetchChallenges = async () => {
-      try {
-        loading.value = true
-        const response = await axios.get('http://localhost:5010/api/challenge')
-        challenges.value = response.data
-        error.value = null
-      } catch (err) {
-        error.value = 'Erreur lors du chargement des challenges'
-        console.error('Erreur:', err)
-      } finally {
-        loading.value = false
-      }
-    }
-
-    const goToChallenge = (id) => {
-      if (!id) {
-        console.error('ID du challenge manquant!')
-        return
-      }
-      router.push(`/challenge/${id}`)
-    }
-
-    onMounted(fetchChallenges)
-
-    return {
-      challenges,
-      loading,
-      error,
-      selectedDifficulty,
-      searchTerm,
-      filteredChallenges,
-      getDifficultyColor,
-      formatValue,
-      fetchChallenges,
-      goToChallenge
-    }
+// Utilitaires
+const getDifficultyColor = (difficulty) => {
+  const colors = {
+    'Facile': 'bg-green-100 text-green-800 border-green-300',
+    'Moyen': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+    'Difficile': 'bg-red-100 text-red-800 border-red-300'
   }
+  return colors[difficulty] || 'bg-gray-100 text-gray-800 border-gray-300'
 }
+
+const formatValue = (value) => {
+  if (typeof value === 'object') {
+    return JSON.stringify(value, null, 2)
+  }
+  return value
+}
+
+// Navigation
+const goToChallenge = (id) => {
+  if (!id) {
+    console.error('ID du challenge manquant!')
+    return
+  }
+  router.push(`/challenge/${id}`)
+}
+
+// Rafraîchissement des données
+const refreshChallenges = () => {
+  challengesStore.fetchChallenges()
+}
+
+// Chargement initial
+onMounted(() => {
+  refreshChallenges()
+})
 </script>
 
 <style scoped>

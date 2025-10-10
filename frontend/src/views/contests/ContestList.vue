@@ -26,6 +26,9 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
+export const API_URL = import.meta.env.VITE_API_URL || 'http://looooooocalhost:5010'
+ 
+console.log("API_URL:", API_URL); // Pour vérifier que la variable est correctement définie
 
 const contests = ref([]);
 const router = useRouter();

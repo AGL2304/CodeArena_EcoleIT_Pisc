@@ -1,6 +1,7 @@
 import Submission from "../models/Submission.js";
 import Challenge from "../models/Challenge.js";
 import { runCode } from "../utils/codeExecutor.js";
+import mongoose from "mongoose";
 
 // Import de la version async
 import { runCodeAsync } from "../utils/codeExecutor.js";
@@ -49,14 +50,14 @@ print(json.dumps(solution(${JSON.stringify(testInput)})))
 // Fonction pour comparer les sorties
 const compareOutputs = (actual, expected) => {
   try {
-    // Nettoyer les sorties
-    const cleanActual = actual.trim();
-    const cleanExpected = JSON.stringify(expected).trim();
-    
+    // Nettoyer les sorties et gérer undefined / null
+    const cleanActual = actual != null ? actual.toString().trim() : '';
+    const cleanExpected = expected != null ? JSON.stringify(expected).trim() : '';
+
     // Essayer de parser en JSON pour comparaison
     try {
       const parsedActual = JSON.parse(cleanActual);
-      return JSON.stringify(parsedActual) === JSON.stringify(expected);
+      return JSON.stringify(parsedActual) === cleanExpected;
     } catch {
       // Si ce n'est pas du JSON, comparer directement
       return cleanActual === cleanExpected;
@@ -70,12 +71,19 @@ const compareOutputs = (actual, expected) => {
 // Créer une submission et exécuter le code
 export const createSubmission = async (req, res) => {
   try {
-    const { userId, challengeId, code, language } = req.body;
+    // ✅ On récupère userId d'abord
+    const userId = req.body.userId || null;
+    const { challengeId, code, language } = req.body;
+
+    console.log("Création de la submission pour l'utilisateur:", userId);
+    console.log("Challenge ID:", challengeId);
+    console.log("Langage:", language);
+    console.log("Code soumis:\n", code);
 
     // Validation
-    if (!userId || !challengeId || !code) {
+    if (!challengeId || !code) {
       return res.status(400).json({ 
-        message: "userId, challengeId et code sont requis" 
+        message: "challengeId et code sont requis" 
       });
     }
 
@@ -85,7 +93,7 @@ export const createSubmission = async (req, res) => {
       return res.status(404).json({ message: "Challenge non trouvé" });
     }
 
-    // Vérifier que le challenge a des test cases
+    // Vérifier qu’il y a des test cases
     if (!challenge.testCases || challenge.testCases.length === 0) {
       return res.status(400).json({ 
         message: "Ce challenge n'a pas de test cases définis" 
@@ -100,37 +108,42 @@ export const createSubmission = async (req, res) => {
     let hasError = false;
     let errorMessage = null;
 
-    // Exécuter le code pour chaque test case
+    console.log(`Exécution de ${totalTests} test(s) pour le challenge "${challenge.title}"`);
+
     for (let i = 0; i < challenge.testCases.length; i++) {
+      console.log(`Exécution du test ${i + 1}...`);
+
       const testCase = challenge.testCases[i];
-      
+
       try {
-        // Préparer le code avec l'input du test
-        const wrappedCode = prepareUserCode(code, language || 'javascript', testCase.input);
-        
-        // Exécuter le code
-        const output = await runCodeAsync(language || 'javascript', wrappedCode);
-        
-        // Comparer avec la sortie attendue
+        console.log("Préparation du code pour le test avec l'input:", testCase.input);
+        const wrappedCode = prepareUserCode(code, language || 'python', testCase.input);
+        console.log("Code préparé:\n", wrappedCode);
+
+        const output = await runCodeAsync(language || 'python', wrappedCode);
+        console.log("Sortie obtenue:", output);
+
         const passed = compareOutputs(output, testCase.output);
-        
+        console.log(`Test ${i + 1} ${passed ? 'réussi' : 'échoué'}`);
+
         if (passed) passedTests++;
-        
+
         testResults.push({
           testNumber: i + 1,
           input: testCase.input,
           expectedOutput: testCase.output,
-          actualOutput: output.trim(),
+          actualOutput: typeof output === "string" ? output.trim() : String(output),
           passed: passed,
           explanation: testCase.explanation || null
         });
-        
+
         allOutput.push(`Test ${i + 1}: ${passed ? '✅ PASS' : '❌ FAIL'}`);
-        
+
       } catch (err) {
+        console.log("Erreur lors de l'exécution du code:", err);
         hasError = true;
         errorMessage = err.toString();
-        
+
         testResults.push({
           testNumber: i + 1,
           input: testCase.input,
@@ -139,22 +152,24 @@ export const createSubmission = async (req, res) => {
           passed: false,
           error: err.toString()
         });
-        
+
         allOutput.push(`Test ${i + 1}: ❌ ERREUR - ${err.message}`);
-        break; // Arrêter si une erreur survient
+        break;
       }
     }
+
+    console.log("Résultats des tests:", testResults);
 
     const timeTaken = Date.now() - startTime;
     const score = Math.round((passedTests / totalTests) * 100);
     const status = hasError ? 'Failed' : (passedTests === totalTests ? 'Success' : 'Failed');
 
-    // Créer la soumission
+    // ✅ Création correcte de la soumission
     const submission = new Submission({
-      user: userId,
+      user: mongoose.isValidObjectId(userId) ? userId : null, // ✅ Vérifie si userId est un vrai ObjectId
       challenge: challengeId,
       code,
-      language: language || 'javascript',
+      language: language || 'python',
       output: allOutput.join('\n'),
       expectedOutput: `${passedTests}/${totalTests} tests réussis`,
       error: errorMessage,
@@ -165,7 +180,7 @@ export const createSubmission = async (req, res) => {
 
     await submission.save();
 
-    // Retourner les résultats détaillés
+    // ✅ Réponse complète
     res.status(201).json({ 
       message: status === 'Success' ? "Tous les tests sont passés!" : "Certains tests ont échoué",
       submission: {
@@ -184,6 +199,7 @@ export const createSubmission = async (req, res) => {
     });
   }
 };
+
 
 // Récupérer toutes les submissions d'un utilisateur
 export const getSubmissionsByUser = async (req, res) => {
