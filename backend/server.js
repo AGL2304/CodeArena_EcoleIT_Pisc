@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
+import Message from "./models/Message.js";
 
 // Charger les variables d'environnement
 dotenv.config();
@@ -16,6 +17,7 @@ import authRoutes from "./routes/authRoutes.js";
 import challengeRoutes from "./routes/challengeRoutes.js";
 import submissionRoutes from "./routes/submissionRoutes.js";
 import testRoutes from "./routes/testRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
 
 // Créer l'application Express
 const app = express();
@@ -43,8 +45,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/challenge", challengeRoutes);
 app.use("/api/submissions", submissionRoutes);
 app.use("/api/test", testRoutes);
-
-
+app.use("/api/messages", messageRoutes);
 
 // Route principale améliorée
 app.get("/", (req, res) => {
@@ -55,8 +56,6 @@ app.get("/", (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
-
-
 
 // Route de santé
 app.get("/api/health", (req, res) => {
@@ -76,20 +75,32 @@ app.get("/api/users", (req, res) => {
   ]);
 });
 
-// Gestion des salles multijoueurs
-const rooms = {}; // { roomId: { socketId: { username, score } } }
+// Gestion des salles multijoueurs et messagerie
+const rooms = {}; // { roomId: { socketId: { username, score, userId } } }
+const typingUsers = {}; // { roomId: Set([userId]) }
 
 io.on("connection", (socket) => {
   console.log(`✅ Nouvelle connexion Socket.io: ${socket.id}`);
 
   // Rejoindre une salle
-  socket.on("joinRoom", ({ roomId, username }) => {
+  socket.on("joinRoom", ({ roomId, username, userId }) => {
     socket.join(roomId);
+    socket.roomId = roomId;
+    socket.userId = userId;
+    socket.username = username;
+
     if (!rooms[roomId]) rooms[roomId] = {};
-    rooms[roomId][socket.id] = { username, score: 0 };
+    rooms[roomId][socket.id] = { username, score: 0, userId };
 
     // Diffuser les participants mis à jour
     io.to(roomId).emit("roomUpdate", rooms[roomId]);
+    
+    // Message système de bienvenue
+    io.to(roomId).emit("systemMessage", {
+      content: `${username} a rejoint la conversation`,
+      timestamp: new Date()
+    });
+
     console.log(`👤 ${username} a rejoint la salle ${roomId}`);
   });
 
@@ -98,6 +109,88 @@ io.on("connection", (socket) => {
     socket.join(`contest-${contestId}`);
     console.log(`👤 Utilisateur ${socket.id} a rejoint le concours ${contestId}`);
   });
+
+  // ========== MESSAGERIE ==========
+  
+  // Envoi d'un message
+  socket.on("sendMessage", async ({ roomId, content, userId, username, type = "text" }) => {
+    try {
+      // Validation
+      if (!content || content.trim().length === 0) {
+        socket.emit("messageError", { error: "Le message ne peut pas être vide" });
+        return;
+      }
+
+      if (content.length > 1000) {
+        socket.emit("messageError", { error: "Message trop long (max 1000 caractères)" });
+        return;
+      }
+
+      // Sauvegarder en base de données
+      const message = new Message({
+        roomId,
+        userId,
+        username,
+        content: content.trim(),
+        type
+      });
+
+      await message.save();
+
+      // Diffuser le message à tous les utilisateurs de la salle
+      io.to(roomId).emit("newMessage", {
+        _id: message._id,
+        roomId: message.roomId,
+        userId: message.userId,
+        username: message.username,
+        content: message.content,
+        type: message.type,
+        timestamp: message.timestamp,
+        isEdited: message.isEdited,
+        reactions: message.reactions
+      });
+
+      console.log(`💬 Message de ${username} dans ${roomId}: ${content.substring(0, 50)}...`);
+    } catch (error) {
+      console.error("❌ Erreur envoi message:", error);
+      socket.emit("messageError", { error: "Erreur lors de l'envoi du message" });
+    }
+  });
+
+  // Utilisateur en train de taper
+  socket.on("typing", ({ roomId, userId, username }) => {
+    if (!typingUsers[roomId]) typingUsers[roomId] = new Set();
+    typingUsers[roomId].add(userId);
+
+    socket.to(roomId).emit("userTyping", {
+      userId,
+      username,
+      isTyping: true
+    });
+  });
+
+  // Utilisateur a arrêté de taper
+  socket.on("stopTyping", ({ roomId, userId }) => {
+    if (typingUsers[roomId]) {
+      typingUsers[roomId].delete(userId);
+    }
+
+    socket.to(roomId).emit("userTyping", {
+      userId,
+      isTyping: false
+    });
+  });
+
+  // Marquer les messages comme lus
+  socket.on("markAsRead", ({ roomId, userId }) => {
+    socket.to(roomId).emit("messagesRead", {
+      userId,
+      roomId,
+      timestamp: new Date()
+    });
+  });
+
+  // ========== FIN MESSAGERIE ==========
 
   // Mettre à jour le score
   socket.on("updateScore", ({ roomId, score }) => {
@@ -115,10 +208,17 @@ io.on("connection", (socket) => {
   // Quitter une salle
   socket.on("leaveRoom", ({ roomId }) => {
     if (rooms[roomId] && rooms[roomId][socket.id]) {
+      const username = rooms[roomId][socket.id].username;
       delete rooms[roomId][socket.id];
+      
       io.to(roomId).emit("roomUpdate", rooms[roomId]);
+      io.to(roomId).emit("systemMessage", {
+        content: `${username} a quitté la conversation`,
+        timestamp: new Date()
+      });
+
       socket.leave(roomId);
-      console.log(`👋 Utilisateur a quitté la salle ${roomId}`);
+      console.log(`👋 ${username} a quitté la salle ${roomId}`);
     }
   });
 
@@ -126,10 +226,22 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     for (const roomId in rooms) {
       if (rooms[roomId][socket.id]) {
+        const username = rooms[roomId][socket.id].username;
         delete rooms[roomId][socket.id];
+        
         io.to(roomId).emit("roomUpdate", rooms[roomId]);
+        io.to(roomId).emit("systemMessage", {
+          content: `${username} s'est déconnecté`,
+          timestamp: new Date()
+        });
       }
     }
+
+    // Nettoyer les indicateurs de frappe
+    if (socket.roomId && typingUsers[socket.roomId]) {
+      typingUsers[socket.roomId].delete(socket.userId);
+    }
+
     console.log(`❌ Déconnexion: ${socket.id}`);
   });
 });
@@ -166,6 +278,7 @@ const startServer = async () => {
       console.log(`🚀 Serveur démarré sur le port ${PORT}`);
       console.log(`📡 Environnement: ${process.env.NODE_ENV || "development"}`);
       console.log(`🔗 URL: http://localhost:${PORT}`);
+      console.log(`💬 Messagerie instantanée activée`);
     });
   } catch (error) {
     console.error("❌ Erreur au démarrage du serveur:", error);
