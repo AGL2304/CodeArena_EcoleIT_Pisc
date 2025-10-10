@@ -1,6 +1,12 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
+
+export const JWT_SECRET = process.env.JWT_SECRET ?? 'super_secret_key'; // même fallback, un seul endroit
+export const JWT_EXPIRES_IN = '1d';
+export const JWT_ALGOS = ['HS256']; // optionnel mais bien
+
+
 // Middleware pour protéger les routes
 export const protect = async (req, res, next) => {
   let token;
