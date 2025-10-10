@@ -1,13 +1,26 @@
 <template>
   <div>
-    <h1>Submissions</h1>
+    <AdminNavBar />
+
+    <!-- Nouvelle barre de gestion utilisateurs -->
+    <AdminUserSubBar />
+
+    <!-- Contenu existant -->
+    <div class="p-6">
+      <!-- ton contenu utilisateur ici -->
+    </div>
   </div>
 </template>
 
-<script setup>
-console.log('Submissions view')
-</script>
+<script>
+import AdminNavBar from "@/components/admin/AdminNavBar.vue";
+import AdminUserSubBar from "@/components/admin/AdminUserSubBar.vue";
 
-<style scoped>
-/* ton style ici */
-</style>
+export default {
+  name: "AdminUsersView",
+  components: {
+    AdminNavBar,
+    AdminUserSubBar,
+  },
+};
+</script>

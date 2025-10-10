@@ -186,6 +186,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useChallengesStore } from '@/stores/challenges'
 
+
 const router = useRouter()
 const challengesStore = useChallengesStore()
 

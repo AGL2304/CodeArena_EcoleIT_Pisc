@@ -1,6 +1,7 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-    <!-- État de chargement -->
+ <div class="min-h-screen bg-gradient-to-br from-purple-200 via-purple-300 to-purple-400">
+
+
     <div v-if="loading" class="min-h-screen flex items-center justify-center">
       <div class="text-center">
         <div class="inline-block animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-purple-500 mb-4"></div>
@@ -37,13 +38,13 @@
 
         <!-- Stats du challenge -->
         <div class="flex items-center gap-6">
-          <div class="flex items-center gap-2 text-purple-300">
+          <div class="flex items-center gap-2 text-white-300">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <span>{{ challenge.submissions || 0 }} soumissions</span>
           </div>
-          <div class="flex items-center gap-2 text-purple-300">
+          <div class="flex items-center gap-2 text-white-300">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
             </svg>
@@ -55,10 +56,11 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Section Description du challenge -->
         <div class="lg:col-span-2 space-y-6">
+           <p class="text-white">{{ challenge.description }}</p>
           <!-- En-tête du challenge -->
-          <div class="bg-white/5 backdrop-blur-lg rounded-xl border border-purple-500/20 p-8">
+          <div class="bg-white/5 backdrop-blur-lg rounded-xl border border-white-500/20 p-8">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
+              <h1 class="text-3xl font-bold bg-gradient-to-r from-white-300 to-pink-300 bg-clip-text text-black">
                 {{ challenge.title }}
               </h1>
               <span 
@@ -81,7 +83,7 @@
           <!-- Section Exemples -->
           <div v-if="challenge.examples && challenge.examples.length > 0" 
                class="bg-white/5 backdrop-blur-lg rounded-xl border border-purple-500/20 p-8">
-            <h3 class="text-xl font-semibold mb-6 text-purple-200">Exemples</h3>
+            <h3 class="text-xl font-semibold mb-6 text-black-200">Exemples</h3>
             <div class="space-y-6">
               <div v-for="(example, index) in challenge.examples" 
                    :key="index" 
@@ -89,14 +91,14 @@
                 <div class="absolute -left-4 top-1/2 -translate-y-1/2 w-2 h-16 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
                 <div class="pl-4 space-y-4">
                   <div class="space-y-2">
-                    <span class="text-sm font-medium text-purple-300">Entrée:</span>
+                    <span class="text-sm font-medium text-white-300">Entrée:</span>
                     <pre class="bg-slate-900/50 border border-purple-500/20 p-4 rounded-lg overflow-x-auto font-mono text-purple-200">{{ formatValue(example.input) }}</pre>
                   </div>
                   <div class="space-y-2">
-                    <span class="text-sm font-medium text-purple-300">Sortie:</span>
-                    <pre class="bg-slate-900/50 border border-purple-500/20 p-4 rounded-lg overflow-x-auto font-mono text-purple-200">{{ formatValue(example.output) }}</pre>
+                    <span class="text-sm font-medium text-white-300">Sortie:</span>
+                    <pre class="bg-slate-900/50 border border-white-500/20 p-4 rounded-lg overflow-x-auto font-mono text-purple-200">{{ formatValue(example.output) }}</pre>
                   </div>
-                  <p v-if="example.explanation" class="text-purple-200 text-sm italic">
+                  <p v-if="example.explanation" class="text-white-200 text-sm italic">
                     {{ example.explanation }}
                   </p>
                 </div>

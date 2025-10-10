@@ -1,5 +1,6 @@
 <template>
   <div class="container mx-auto px-4 py-8">
+          <AdminUserSubBar />
     <div class="max-w-3xl mx-auto">
       <h1 class="text-3xl font-bold mb-8">Créer un nouveau challenge</h1>
       
@@ -208,6 +209,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useChallengesStore } from '@/stores/challenges'
+import AdminUserSubBar from "@/components/admin/AdminUserSubBar.vue";
+
 
 const router = useRouter()
 const challengesStore = useChallengesStore()
